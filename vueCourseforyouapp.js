@@ -12,7 +12,7 @@ new Vue({
         confirmedOrderDetails: null, // holds details of the confirmed order 
         showLessonModal: false, // boolean to control lesson info modal visibility
         selectedLesson: null,   // holds the currently selected lesson for modal display 
-        apiBaseUrl: 'http://localhost:3000/api', // Base URL for API request
+        apiBaseUrl: 'https://expressjs-flj.onrender.com', // Base URL for API request
 
         lessons: [ //array of lesson objects with details
             {
