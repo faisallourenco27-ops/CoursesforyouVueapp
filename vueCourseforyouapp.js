@@ -5,6 +5,8 @@ new Vue({
         sortOrder: 'asc', //default for order:, means ascend appears first 
         cart: [], //array to hold added lessons to cart 
         showCartPage: false,
+        checkoutName: '', //name input field for checkout form
+        checkoutPhone: '', //phone input field for checkout form 
         lessons: [ //array of lesson objects with details
             {
                 id: 1,
@@ -115,7 +117,21 @@ new Vue({
     },
     cartCount() {
         return this.cart.reduce((total, item) => total + item.quantity, 0);
+        },
+        isNameValid() {
+            return /^[A-Za-z\s]+$/.test(this.checkoutName.trim());
+        },
+        isPhoneValid() {
+            return /^\d+$/.test(this.checkoutPhone.trim());
+        },
+        isCheckoutEnabled() {
+            return this.isNameValid && this.isPhoneValid && this.cart.length > 0;
+        },
+        cartTotal() {
+            return this.cart.reduce((total, item) => total + (item.price * item.quantity), 0);
         }
+
+
     },
     methods: {
         addToCart(lesson) {
@@ -151,6 +167,16 @@ new Vue({
             this.checkoutName = '';
             this.checkoutPhone = '';
         },
+
+         checkout() {
+            if (this.isCheckoutEnabled) {
+            alert('Order has been submitted successfully!\nThank you for your purchase');
+            this.cart = [];
+            this.checkoutName = '';
+            this.checkoutPhone = '';
+            this.showCartPage = false;
+            }
+        }   
 
 
 

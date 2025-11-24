@@ -102,5 +102,72 @@
                 <div class="cart-total">
                     <h3>Total: £{{ cartTotal }}</h3>
                 </div>
+
+            <!-- Checkout Form -->
+            <div class="checkout-form">
+                <h3>Checkout</h3> 
+        
+         
+            <!-- Order Confirmation Message -->
+            <div v-if="showOrderConfirmation" class="order-confirmation">
+                 <i class="fas fa-check-circle"></i>
+                 <h3>Order Submitted Successfully!</h3>
+                    <p><strong>Order Number:</strong> {{ confirmedOrderDetails.orderNumber }}</p>
+                    <p><strong>Thank you, {{ confirmedOrderDetails.name }}!</strong></p>
+                     <p>Your order has been confirmed and will be processed shortly.</p>
+                     <p>We will contact you at {{ confirmedOrderDetails.phone }} if needed.</p>
+                    <div class="order-summary">
+                        <h4>Order Summary:</h4>
+                        <ul>
+                          <li v-for="item in confirmedOrderDetails.items" :key="item.id">
+                             {{ item.lesson }} - {{ item.location }} (Qty: {{ item.quantity }}) - £{{ item.price * item.quantity }}
+                          </li>
+                                </ul>
+                            <p><strong>Total: £{{ confirmedOrderDetails.total }}</strong></p>
+                    </div>
+                    <p class="confirmation-note">You will receive an email confirmation shortly.</p>
+                   </div>
+        <!-- Checkout Form -->
+            <div v-else>
+             <div class="form-group">
+             <label for="name"><strong>Name:</strong></label>
+             <input 
+                type="text" 
+                id="name" 
+                v-model="checkoutName" 
+                placeholder="Enter your name (letters only)"
+                :class="{ 'invalid': checkoutName && !isNameValid }"
+                 >
+                 <span v-if="checkoutName && !isNameValid" class="error-message">
+                    Name must contain letters only
+                </span>
+                </div>
+                            
+                <div class="form-group">
+                    <label for="phone"><strong>Phone:</strong></label>
+                <input 
+                     type="text" 
+                     id="phone" 
+                     v-model="checkoutPhone" 
+                     placeholder="Enter your phone number (numbers only)"
+                     :class="{ 'invalid': checkoutPhone && !isPhoneValid }"
+                    >
+                    <span v-if="checkoutPhone && !isPhoneValid" class="error-message">
+                            Phone must contain numbers only
+                    </span>
+                    </div>
+
+                    <button 
+                     class="checkout-btn" 
+                     @click="checkout()" 
+                     :disabled="!isCheckoutEnabled"
+                     >
+                    <i class="fas fa-check"></i> Checkout
+                    </button>
+                    </div>
+                    </div>
+                </div>
+            </div>
+
 </body>
 </html>
