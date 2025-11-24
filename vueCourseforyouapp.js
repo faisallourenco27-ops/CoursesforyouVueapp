@@ -4,6 +4,7 @@ new Vue({
         sortBy: 'lesson', //default for sort by:, means lesson will appear first 
         sortOrder: 'asc', //default for order:, means ascend appears first 
         cart: [], //array to hold added lessons to cart 
+        showCartPage: false,
         lessons: [ //array of lesson objects with details
             {
                 id: 1,
@@ -133,7 +134,25 @@ new Vue({
                     });
                 }
             }
-        }
+        },
+        removeFromCart(cartItem) {
+            const lesson = this.lessons.find(l => l.id === cartItem.id);
+            if (lesson) {
+                lesson.spaces += cartItem.quantity;
+            }
+            this.cart = this.cart.filter(item => item.id !== cartItem.id);
+        },
+        viewCart() {
+            this.showCartPage = true;
+            this.orderSubmitted = false;
+        },
+        backToLessons() {
+            this.showCartPage = false;
+            this.checkoutName = '';
+            this.checkoutPhone = '';
+        },
+
+
 
     }
 });

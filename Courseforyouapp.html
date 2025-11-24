@@ -34,6 +34,12 @@
                         </select>
                     </div>
             </div>
+            <div class="cart-summary">
+                    <strong>Cart: {{ cartCount }} items</strong>
+                    <button class="view-cart-btn" @click="viewCart()">
+                        <i class="fas fa-shopping-cart"></i> View Cart
+                    </button>
+                </div>
 
     <div class="lessons-grid">
     <div v-for="lesson in lessons" :key="lesson.id" class="lesson-card">
@@ -65,5 +71,36 @@
         </div>
     </div>
 </div>
+
+        <!-- Shopping Cart Page -->
+        <div v-else class="cart-page">
+            <div class="cart-header">
+                <button class="back-btn" @click="backToLessons()">
+                    <i class="fas fa-arrow-left"></i> Back to Lessons
+                </button>
+                    <h2>Shopping Cart</h2>
+                </div>
+
+                <div v-if="cart.length === 0" class="empty-cart">
+                    <p>Your cart is empty</p>
+                </div>
+
+                <div v-else class="cart-items">
+                    <div v-for="item in cart" :key="item.id" class="cart-item">
+                        <div class="item-details">
+                            <h3>{{ item.lesson }}</h3>
+                            <p>Location: {{ item.location }}</p>
+                            <p>Price: £{{ item.price }} each</p>
+                            <p>Quantity: {{ item.quantity }}</p>
+                            <p class="item-total">Total: £{{ item.price * item.quantity }}</p>
+                        </div>
+                        <button class="remove-btn" @click="removeFromCart(item)">
+                            <i class="fas fa-trash"></i> Remove
+                        </button>
+                    </div>
+
+                <div class="cart-total">
+                    <h3>Total: £{{ cartTotal }}</h3>
+                </div>
 </body>
 </html>
