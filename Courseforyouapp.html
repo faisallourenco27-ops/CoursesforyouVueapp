@@ -56,6 +56,13 @@
             <strong>Spaces:</strong>
             <span>{{ lesson.spaces }} available</span>
         </div>
+
+        <button class="add-to-cart-btn" @click="addToCart(lesson)" :disabled="lesson.spaces === 0">
+        <i class="fas fa-cart-plus"></i>
+        {{ lesson.spaces > 0 ? 'Add to Cart' : 'No Spaces Available' }}
+        </button>
+
+        </div>
     </div>
 </div>
 </body>

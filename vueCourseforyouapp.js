@@ -3,6 +3,7 @@ new Vue({
     data: {
         sortBy: 'lesson', //default for sort by:, means lesson will appear first 
         sortOrder: 'asc', //default for order:, means ascend appears first 
+        cart: [], //array to hold added lessons to cart 
         lessons: [ //array of lesson objects with details
             {
                 id: 1,
@@ -110,7 +111,29 @@ new Vue({
             return 0;
         });
         return sorted;
-    }
-    
+    },
+    cartCount() {
+        return this.cart.reduce((total, item) => total + item.quantity, 0);
+        }
+    },
+    methods: {
+        addToCart(lesson) {
+            if (lesson.spaces > 0) {
+            lesson.spaces--;
+                const existingItem = this.cart.find(item => item.id === lesson.id);
+                if (existingItem) {
+                existingItem.quantity++;
+                } else {
+                    this.cart.push({
+                    id: lesson.id,
+                    lesson: lesson.lesson,
+                    location: lesson.location,
+                    price: lesson.price,
+                    quantity: 1
+                    });
+                }
+            }
+        }
+
     }
 });

@@ -35,6 +35,27 @@ header {
     flex-wrap: wrap;
 }
 
+select, button {
+    padding: 10px 15px;
+    border: 1px solid #0f0600;
+    border-radius: 8px;
+    font-size: 14px;
+    background: white;
+}
+button {
+    background: #49004a;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+button:hover:not(:disabled) {
+    background: #2980b9;
+}
+button:disabled {
+    background: #95a5a6;
+    cursor: not-allowed;
+}
 
 .lessons-grid {
     display: grid;
