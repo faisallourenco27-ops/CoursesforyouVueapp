@@ -7,6 +7,12 @@ new Vue({
         showCartPage: false,
         checkoutName: '', //name input field for checkout form
         checkoutPhone: '', //phone input field for checkout form 
+        orderSubmitted: false, //boolean to indicate if order has been submitted
+        showOrderConfirmation: false,  // boolean to control order confirmation visibility
+        confirmedOrderDetails: null, // holds details of the confirmed order 
+        showLessonModal: false, // boolean to control lesson info modal visibility
+        selectedLesson: null,   // holds the currently selected lesson for modal display 
+
         lessons: [ //array of lesson objects with details
             {
                 id: 1,
@@ -168,17 +174,42 @@ new Vue({
             this.checkoutPhone = '';
         },
 
-         checkout() {
-            if (this.isCheckoutEnabled) {
-            alert('Order has been submitted successfully!\nThank you for your purchase');
+        checkout() {
+    if (this.isCheckoutEnabled) {
+        // Generate order confirmation details
+        const orderNumber = 'ORD' + Date.now();
+        this.confirmedOrderDetails = {
+            orderNumber: orderNumber,
+            name: this.checkoutName,
+            phone: this.checkoutPhone,
+            items: [...this.cart],
+            total: this.cartTotal
+        };
+        
+        // Show confirmation message
+        this.showOrderConfirmation = true;
+        
+        // Clear cart and reset after a delay
+        setTimeout(() => {
             this.cart = [];
             this.checkoutName = '';
             this.checkoutPhone = '';
             this.showCartPage = false;
-            }
-        }   
+            this.showOrderConfirmation = false;
+        }, 9000);
+        }
+    },
+      
+        showLessonInfo(lesson) {
+                this.selectedLesson = lesson;
+                this.showLessonModal = true;
+        },
+    
 
-
+        hideLessonInfo() {
+                this.showLessonModal = false;
+                this.selectedLesson = null;
+        }
 
     }
 });

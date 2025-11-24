@@ -1,4 +1,4 @@
-!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -42,7 +42,7 @@
                 </div>
 
     <div class="lessons-grid">
-    <div v-for="lesson in lessons" :key="lesson.id" class="lesson-card">
+    <div v-for="lesson in sortedLessons" :key="lesson.id" class="lesson-card">
         <div class="lesson-icon">
             <img :src="lesson.icon" :alt="lesson.lesson">
         </div>
@@ -62,6 +62,16 @@
             <strong>Spaces:</strong>
             <span>{{ lesson.spaces }} available</span>
         </div>
+
+        <button 
+            class="more-info-btn"
+             @click="showLessonInfo(lesson)"
+        >
+        <i class="fas fa-info-circle"></i> More Info
+        </button>
+
+
+           
 
         <button class="add-to-cart-btn" @click="addToCart(lesson)" :disabled="lesson.spaces === 0">
         <i class="fas fa-cart-plus"></i>
@@ -169,5 +179,64 @@
                 </div>
             </div>
 
+
+     <!-- Lesson Info Modal -->
+            <div v-if="showLessonModal" class="modal-overlay" @click="hideLessonInfo">
+                <div class="modal-content" @click.stop>
+                    <div class="modal-header">
+                        <h2>{{ selectedLesson.lesson }}</h2>
+                        <button class="close-btn" @click="hideLessonInfo">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="modal-body">
+                        <div class="lesson-icon-large">
+                            <img :src="selectedLesson.icon" :alt="selectedLesson.lesson">
+                        </div>
+                        
+                        <div class="lesson-details-modal">
+                            <div class="detail-row">
+                                <strong>Location:</strong>
+                                <span>{{ selectedLesson.location }}</span>
+                            </div>
+                            
+                            <div class="detail-row">
+                                <strong>Price:</strong>
+                                <span>£{{ selectedLesson.price }} per session</span>
+                            </div>
+                            
+                            <div class="detail-row">
+                                <strong>Spaces Available:</strong>
+                                <span :class="selectedLesson.spaces > 2 ? 'spaces-available' : 'spaces-low'">
+                                    {{ selectedLesson.spaces }}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="synopsis-section">
+                            <h3>About this lesson:</h3>
+                            <p class="synopsis-text">{{ selectedLesson.synopsis }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button 
+                            class="add-to-cart-modal-btn"
+                            @click="addToCart(selectedLesson); hideLessonInfo();"
+                            :disabled="selectedLesson.spaces === 0"
+                        >
+                            <i class="fas fa-cart-plus"></i>
+                            {{ selectedLesson.spaces > 0 ? 'Add to Cart' : 'No Spaces Available' }}
+                        </button>
+                        
+                        <button class="close-modal-btn" @click="hideLessonInfo">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
