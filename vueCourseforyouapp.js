@@ -12,6 +12,7 @@ new Vue({
         confirmedOrderDetails: null, // holds details of the confirmed order 
         showLessonModal: false, // boolean to control lesson info modal visibility
         selectedLesson: null,   // holds the currently selected lesson for modal display 
+        apiBaseUrl: 'http://localhost:3000/api', // Base URL for API request
 
         lessons: [ //array of lesson objects with details
             {
@@ -106,6 +107,11 @@ new Vue({
             }
         ]
     },
+
+    created() {
+        this.fetchLessons();
+    },
+
     computed: {
     sortedLessons() {
         const sorted = [...this.lessons].sort((a, b) => {
@@ -121,6 +127,36 @@ new Vue({
         });
         return sorted;
     },
+
+     async fetchLessons() {
+            try {
+                const response = await fetch(`${this.apiBaseUrl}/lessons`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // backend data to match frontend format
+                this.lessons = data.map(lesson => ({
+                    id: lesson._id,
+                    lesson: lesson.topic,
+                    location: lesson.location,
+                    price: lesson.price,
+                    spaces: lesson.space,
+                    icon: `http://localhost:3000/images/${lesson.topic.replace(/\s+/g, '')}.jpg`,
+                    synopsis: `Learn ${lesson.topic} at our ${lesson.location} location. An engaging course designed to help you master the subject.`
+                }));
+                
+                console.log(' Lessons fetched successfully:', this.lessons.length, 'lessons');
+                
+            } catch (error) {
+                console.error(' Error fetching lessons:', error);
+                alert('Failed to load lessons. Please make sure the backend server is running on http://localhost:3000');
+            }
+        },
+
     cartCount() {
         return this.cart.reduce((total, item) => total + item.quantity, 0);
         },
@@ -173,33 +209,124 @@ new Vue({
             this.checkoutName = '';
             this.checkoutPhone = '';
         },
+       
+        // POST - Save new order to backend 
+        async saveOrder(orderData) {
+            try {
+                const response = await fetch(`${this.apiBaseUrl}/orders`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(orderData)
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                }
+                
+                const savedOrder = await response.json();
+                console.log(' Order saved successfully:', savedOrder);
+                return savedOrder;
+                
+            } catch (error) {
+                console.error('❌ Error saving order:', error);
+                throw error;
+            }
+        },
 
-        checkout() {
-    if (this.isCheckoutEnabled) {
-        // Generate order confirmation details
-        const orderNumber = 'ORD' + Date.now();
-        this.confirmedOrderDetails = {
-            orderNumber: orderNumber,
-            name: this.checkoutName,
-            phone: this.checkoutPhone,
-            items: [...this.cart],
-            total: this.cartTotal
-        };
-        
-        // Show confirmation message
-        this.showOrderConfirmation = true;
-        
-        // Clear cart and reset after a delay
-        setTimeout(() => {
-            this.cart = [];
-            this.checkoutName = '';
-            this.checkoutPhone = '';
-            this.showCartPage = false;
-            this.showOrderConfirmation = false;
-        }, 9000);
-        }
-    },
-      
+        // PUT - Update lesson spaces in backend 
+        async updateLessonSpaces(lessonId, newSpaces) {
+            try {
+                const response = await fetch(`${this.apiBaseUrl}/lessons/${lessonId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ space: newSpaces })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                }
+                
+                const updatedLesson = await response.json();
+                console.log('Lesson spaces updated successfully:', updatedLesson);
+                return updatedLesson;
+                
+            } catch (error) {
+                console.error(' Error updating lesson spaces:', error);
+                throw error;
+            }
+        },
+
+    // integrate all three fetch operations
+        async checkout() {
+            if (!this.isCheckoutEnabled) return;
+            
+            try {
+                // Prepare order data for backend
+                const orderData = {
+                    name: this.checkoutName,
+                    phoneNumber: this.checkoutPhone,
+                    lessonIDs: this.cart.map(item => item.id),
+                    spaces: this.cart.reduce((total, item) => total + item.quantity, 0),
+                    // Backend will calculate totalPrice, but we can send it too
+                    totalPrice: this.cartTotal
+                };
+                
+                // B. POST - Save the order to database
+                console.log('📝 Saving order to database...');
+                const savedOrder = await this.saveOrder(orderData);
+                
+                // C. PUT - Update spaces for each lesson in the cart
+                console.log('🔄 Updating lesson spaces...');
+                const updatePromises = this.cart.map(item => {
+                    const lesson = this.lessons.find(l => l.id === item.id);
+                    if (lesson) {
+                        // Send the current space count to backend
+                        return this.updateLessonSpaces(item.id, lesson.spaces);
+                    }
+                });
+                
+                await Promise.all(updatePromises);
+                console.log('✅ All lesson spaces updated');
+                
+                // Generate order number for display
+                const orderNumber = savedOrder.order?._id || 'ORD' + Date.now();
+                
+                // Store confirmation details
+                this.confirmedOrderDetails = {
+                    orderNumber: orderNumber,
+                    name: this.checkoutName,
+                    phone: this.checkoutPhone,
+                    items: [...this.cart],
+                    total: this.cartTotal
+                };
+                
+                // Show confirmation message
+                this.showOrderConfirmation = true;
+                
+                // Clear cart and reset after delay
+                setTimeout(() => {
+                    this.cart = [];
+                    this.checkoutName = '';
+                    this.checkoutPhone = '';
+                    this.showCartPage = false;
+                    this.showOrderConfirmation = false;
+                    
+                    // Refresh lessons from backend to get updated spaces
+                    this.fetchLessons();
+                }, 9000);
+                
+            } catch (error) {
+                alert('There was an error processing your order. Please try again.\n\nError: ' + error.message);
+                console.error('Checkout error:', error);
+            }
+        },
+       
         showLessonInfo(lesson) {
                 this.selectedLesson = lesson;
                 this.showLessonModal = true;
