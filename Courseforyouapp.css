@@ -23,6 +23,18 @@ header {
     padding: 20px;
     text-align: center;
 }
+.controls {
+    padding: 20px;
+    background: #ecf0f1;
+    border-bottom: 1px solid #bdc3c7;
+}
+.sort-controls {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
 
 .lessons-grid {
     display: grid;

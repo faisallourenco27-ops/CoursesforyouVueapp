@@ -15,8 +15,25 @@
             <header>
                 <h1><i class="fas fa-graduation-cap"></i> Courses for you</h1>
             </header>
-        </div>
-    </div>
+
+        <div v-if="!showCartPage">
+                <div class="controls">
+                    <div class="sort-controls">
+                        <label><strong>Sort by:</strong></label>
+                        <select v-model="sortBy">
+                            <option value="lesson">Lesson</option>
+                            <option value="location">Location</option>
+                            <option value="price">Price</option>         
+                            <option value="spaces">Available Spaces</option>
+                        </select>
+                        
+                        <label><strong>Order:</strong></label> 
+                        <select v-model="sortOrder">
+                            <option value="asc">Ascending</option>
+                            <option value="desc">Descending</option>
+                        </select>
+                    </div>
+            </div>
 
     <div class="lessons-grid">
     <div v-for="lesson in lessons" :key="lesson.id" class="lesson-card">

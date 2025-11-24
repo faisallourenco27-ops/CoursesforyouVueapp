@@ -1,7 +1,9 @@
 new Vue({
     el: '#app',
     data: {
-         lessons: [ //array of lesson objects with details
+        sortBy: 'lesson', //default for sort by:, means lesson will appear first 
+        sortOrder: 'asc', //default for order:, means ascend appears first 
+        lessons: [ //array of lesson objects with details
             {
                 id: 1,
                 lesson: 'Further Maths',
@@ -93,5 +95,22 @@ new Vue({
                 synopsis: 'Discover culinary skills, recipes, and cooking techniques from various cuisines.' 
             }
         ]
+    },
+    computed: {
+    sortedLessons() {
+        const sorted = [...this.lessons].sort((a, b) => {
+            let aValue = a[this.sortBy];
+            let bValue = b[this.sortBy];
+            if (typeof aValue === 'string') {
+                aValue = aValue.toLowerCase();
+                bValue = bValue.toLowerCase();
+            }
+            if (aValue < bValue) return this.sortOrder === 'asc' ? -1 : 1;
+            if (aValue > bValue) return this.sortOrder === 'asc' ? 1 : -1;
+            return 0;
+        });
+        return sorted;
+    }
+    
     }
 });
