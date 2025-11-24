@@ -17,5 +17,29 @@
             </header>
         </div>
     </div>
+
+    <div class="lessons-grid">
+    <div v-for="lesson in lessons" :key="lesson.id" class="lesson-card">
+        <div class="lesson-icon">
+            <img :src="lesson.icon" :alt="lesson.lesson">
+        </div>
+        <div class="lesson-detail">
+            <strong>Lesson:</strong>
+            <span>{{ lesson.lesson }}</span>
+        </div>
+        <div class="lesson-detail">
+            <strong>Location:</strong>
+            <span>{{ lesson.location }}</span>
+        </div>
+        <div class="lesson-detail">
+            <strong>Price:</strong>
+            <span>£{{ lesson.price }}</span>
+        </div>
+        <div class="lesson-detail">
+            <strong>Spaces:</strong>
+            <span>{{ lesson.spaces }} available</span>
+        </div>
+    </div>
+</div>
 </body>
 </html>
