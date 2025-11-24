@@ -128,35 +128,6 @@ new Vue({
         return sorted;
     },
 
-     async fetchLessons() {
-            try {
-                const response = await fetch(`${this.apiBaseUrl}/lessons`);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                
-                // backend data to match frontend format
-                this.lessons = data.map(lesson => ({
-                    id: lesson._id,
-                    lesson: lesson.topic,
-                    location: lesson.location,
-                    price: lesson.price,
-                    spaces: lesson.space,
-                    icon: `http://localhost:3000/images/${lesson.topic.replace(/\s+/g, '')}.jpg`,
-                    synopsis: `Learn ${lesson.topic} at our ${lesson.location} location. An engaging course designed to help you master the subject.`
-                }));
-                
-                console.log(' Lessons fetched successfully:', this.lessons.length, 'lessons');
-                
-            } catch (error) {
-                console.error(' Error fetching lessons:', error);
-                alert('Failed to load lessons. Please make sure the backend server is running on http://localhost:3000');
-            }
-        },
-
     cartCount() {
         return this.cart.reduce((total, item) => total + item.quantity, 0);
         },
@@ -176,6 +147,39 @@ new Vue({
 
     },
     methods: {
+        async fetchLessons() {
+            try {
+                console.log(' Fetching lessons from:', `${this.apiBaseUrl}/lessons`);
+                const response = await fetch(`${this.apiBaseUrl}/lessons`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log(' Received data:', data);
+                
+                // Transform backend data to match frontend format
+                this.lessons = data.map(lesson => ({
+                    id: lesson._id || lesson.id,
+                    lesson: lesson.topic || lesson.lesson,
+                    location: lesson.location,
+                    price: lesson.price,
+                    spaces: lesson.space || lesson.spaces,
+                    // Use existing image URLs as fallback, or create dynamic ones
+                    icon: lesson.image || this.getLessonImage(lesson.topic || lesson.lesson),
+                    synopsis: lesson.description || `Learn ${lesson.topic || lesson.lesson} at our ${lesson.location} location.`
+                }));
+                
+                console.log(' Lessons fetched successfully:', this.lessons.length, 'lessons');
+                
+            } catch (error) {
+                console.error(' Error fetching lessons:', error);
+                // Use hardcoded lessons as fallback
+                this.useFallbackLessons();
+            }
+        },
+
         addToCart(lesson) {
             if (lesson.spaces > 0) {
             lesson.spaces--;
