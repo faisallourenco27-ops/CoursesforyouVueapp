@@ -123,4 +123,128 @@
                         <h3>Checkout</h3>
 
                         <!-- Order Confirmation Message -->
-                        <div v-if="showOrderConfirmation" class="
+                        <div v-if="showOrderConfirmation" class="order-confirmation">
+                            <i class="fas fa-check-circle"></i>
+                            <h3>Order Submitted Successfully!</h3>
+                            <p><strong>Order Number:</strong> {{ confirmedOrderDetails.orderNumber }}</p>
+                            <p><strong>Thank you, {{ confirmedOrderDetails.name }}!</strong></p>
+                            <p>Your order has been confirmed and will be processed shortly.</p>
+                            <p>We will contact you at {{ confirmedOrderDetails.phone }} if needed.</p>
+
+                            <div class="order-summary">
+                                <h4>Order Summary:</h4>
+                                <ul>
+                                    <li v-for="item in confirmedOrderDetails.items" :key="item.id">
+                                        {{ item.lesson }} - {{ item.location }} (Qty: {{ item.quantity }}) -
+                                        £{{ item.price * item.quantity }}
+                                    </li>
+                                </ul>
+                                <p><strong>Total: £{{ confirmedOrderDetails.total }}</strong></p>
+                            </div>
+
+                            <p class="confirmation-note">You will receive an email confirmation shortly.</p>
+                        </div>
+
+                        <!-- Checkout inputs (only when not showing confirmation) -->
+                        <div v-else>
+                            <div class="form-group">
+                                <label for="name"><strong>Name:</strong></label>
+                                <input
+                                    type="text"
+                                    id="name"
+                                    v-model="checkoutName"
+                                    placeholder="Enter your name (letters only)"
+                                    :class="{ 'invalid': checkoutName && !isNameValid }"
+                                >
+                                <span v-if="checkoutName && !isNameValid" class="error-message">
+                                    Name must contain letters only
+                                </span>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="phone"><strong>Phone:</strong></label>
+                                <input
+                                    type="text"
+                                    id="phone"
+                                    v-model="checkoutPhone"
+                                    placeholder="Enter your phone number (numbers only)"
+                                    :class="{ 'invalid': checkoutPhone && !isPhoneValid }"
+                                >
+                                <span v-if="checkoutPhone && !isPhoneValid" class="error-message">
+                                    Phone must contain numbers only
+                                </span>
+                            </div>
+
+                            <button
+                                class="checkout-btn"
+                                @click="checkout()"
+                                :disabled="!isCheckoutEnabled"
+                            >
+                                <i class="fas fa-check"></i> Checkout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lesson Info Modal -->
+            <div v-if="showLessonModal" class="modal-overlay" @click="hideLessonInfo">
+                <div class="modal-content" @click.stop>
+                    <div class="modal-header">
+                        <h2>{{ selectedLesson.lesson }}</h2>
+                        <button class="close-btn" @click="hideLessonInfo">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="lesson-icon-large">
+                            <img :src="selectedLesson.icon" :alt="selectedLesson.lesson">
+                        </div>
+
+                        <div class="lesson-details-modal">
+                            <div class="detail-row">
+                                <strong>Location:</strong>
+                                <span>{{ selectedLesson.location }}</span>
+                            </div>
+
+                            <div class="detail-row">
+                                <strong>Price:</strong>
+                                <span>£{{ selectedLesson.price }} per session</span>
+                            </div>
+
+                            <div class="detail-row">
+                                <strong>Spaces Available:</strong>
+                                <span :class="selectedLesson.spaces > 2 ? 'spaces-available' : 'spaces-low'">
+                                    {{ selectedLesson.spaces }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="synopsis-section">
+                            <h3>About this lesson:</h3>
+                            <p class="synopsis-text">{{ selectedLesson.synopsis }}</p>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button
+                            class="add-to-cart-modal-btn"
+                            @click="addToCart(selectedLesson); hideLessonInfo();"
+                            :disabled="selectedLesson.spaces === 0"
+                        >
+                            <i class="fas fa-cart-plus"></i>
+                            {{ selectedLesson.spaces > 0 ? 'Add to Cart' : 'No Spaces Available' }}
+                        </button>
+
+                        <button class="close-modal-btn" @click="hideLessonInfo">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</body>
+</html>
