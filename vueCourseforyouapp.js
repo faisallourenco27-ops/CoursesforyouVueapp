@@ -350,13 +350,16 @@ new Vue({
                 
                 // Hide confirmation and return to lessons after delay
                 setTimeout(() => {
+                    console.log('Timeout executed, hiding confirmation');
                     this.showOrderConfirmation = false;
                     this.showCartPage = false;
                     
                     // Refresh lessons from backend to get updated spaces
-                    this.fetchLessons();
-                }, 9000);
-                
+                    setTimeout(() => {
+                this.fetchLessons();
+                }, 1000);
+            }, 9000);
+            
             } catch (error) {
                 alert('There was an error processing your order. Please try again.\n\nError: ' + error.message);
                 console.error(' Checkout error:', error);
