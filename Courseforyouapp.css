@@ -266,7 +266,6 @@ button:disabled {
 }
 
 .order-confirmation {
-    display: block; /* FIX: Ensure it is not hidden by a default rule */
     text-align: center;
     padding: 30px;
     margin-top: 20px;
@@ -476,19 +475,4 @@ button:disabled {
         right: auto;
         margin: 20px;
     }
-}
-.continue-shopping-btn {
-    background: #33004df9;
-    color: white;
-    padding: 12px 24px;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background 0.3s;
-    margin-top: 15px;
-}
-
-.continue-shopping-btn:hover {
-    background: #000904;
 }
