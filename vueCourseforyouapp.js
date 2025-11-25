@@ -12,7 +12,7 @@ new Vue({
         confirmedOrderDetails: null, // holds details of the confirmed order 
         showLessonModal: false, // boolean to control lesson info modal visibility
         selectedLesson: null,   // holds the currently selected lesson for modal display 
-        apiBaseUrl: 'https://expressjs-flj.onrender.com', // Base URL for API request
+        apiBaseUrl: 'https://expressjs-flj.onrender.com/api', // Base URL for API request
 
         lessons: [ //array of lesson objects with details
             {
@@ -150,7 +150,7 @@ new Vue({
         async fetchLessons() {
             try {
                 console.log(' Fetching lessons from:', `${this.apiBaseUrl}/lessons`);
-                const response = await fetch(`${this.apiBaseUrl}/api/lessons`);
+                const response = await fetch(`${this.apiBaseUrl}/lessons`);
                 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
@@ -240,7 +240,7 @@ new Vue({
         // POST - Save new order to backend 
             async saveOrder(orderData) {
                 try {
-                    const response = await fetch(`${this.apiBaseUrl}/api/orders`, {  
+                    const response = await fetch(`${this.apiBaseUrl}/orders`, {  
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
