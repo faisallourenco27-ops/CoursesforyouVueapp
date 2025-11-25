@@ -165,47 +165,44 @@ new Vue({
             this.checkoutName = '';
             this.checkoutPhone = '';
         },
-       
-        async saveOrder(orderData) {
-            try {
-                console.log('Sending order data:', orderData);
-                
-                // Try different data formats to see what the backend expects
-                const orderPayload = {
-                    name: orderData.name,
-                    phone: orderData.phoneNumber, // Try 'phone' instead of 'phoneNumber'
-                    lessons: orderData.lessonIDs.map(id => ({
-                        id: id,
-                        quantity: 1 // Default quantity
-                    }))
-                };
-                
-                console.log('Order payload:', orderPayload);
-                
-                const response = await fetch(`${this.apiBaseUrl}/orders`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(orderPayload)
-                });
-                
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('Server response:', errorText);
-                    throw new Error(`HTTP error! status: ${response.status}. Response: ${errorText}`);
-                }
-                
-                const savedOrder = await response.json();
-                console.log('Order saved successfully:', savedOrder);
-                return savedOrder;
-                
-            } catch (error) {
-                console.error('Error saving order:', error);
-                throw error;
-            }
-        },
 
+    async saveOrder(orderData) {
+         try {
+        console.log('Sending order data:', orderData);
+        
+        // Try the absolute simplest format
+        const orderPayload = {
+            name: orderData.name,
+            phone: orderData.phone
+        };
+        
+        console.log('Simple order payload:', orderPayload);
+        
+        const response = await fetch(`${this.apiBaseUrl}/orders`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(orderPayload)
+        });
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Server response:', errorText);
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const savedOrder = await response.json();
+        console.log('Order saved successfully:', savedOrder);
+        return savedOrder;
+        
+    } catch (error) {
+        console.error('Error saving order:', error);
+        throw error;
+    }
+},
+       
+        
         async updateLessonSpaces(lessonId, newSpaces) {
             try {
                 console.log(`Updating lesson ${lessonId} to ${newSpaces} spaces`);
