@@ -9,7 +9,13 @@ new Vue({
         checkoutPhone: '', //phone input field for checkout form 
         orderSubmitted: false, //boolean to indicate if order has been submitted
         showOrderConfirmation: false,  // boolean to control order confirmation visibility
-        confirmedOrderDetails: null, // holds details of the confirmed order 
+        confirmedOrderDetails: {
+        orderNumber: '',
+        name: '',
+        phone: '',
+        items: [],
+        total: 0
+    },
         showLessonModal: false, // boolean to control lesson info modal visibility
         selectedLesson: null,   // holds the currently selected lesson for modal display 
         apiBaseUrl: 'https://expressjs-flj.onrender.com/api', // Base URL for API request - Corrected to include /api
@@ -289,82 +295,82 @@ new Vue({
                     throw error;
                 }
             },
-             // Checkout integrates all three fetch operations
-        async checkout() {
-            if (!this.isCheckoutEnabled) return;
-            
-            try {
-                console.log('Starting checkout process...');
-                
-                // Take snapshot of cart BEFORE any async operations
-                const cartSnapshot = [...this.cart];
-                const totalSnapshot = this.cartTotal;
-                const nameSnapshot = this.checkoutName;
-                const phoneSnapshot = this.checkoutPhone;
-                
-                // Prepare order data for backend
-                const orderData = {
-                    name: nameSnapshot,
-                    phoneNumber: phoneSnapshot,
-                    lessonIDs: cartSnapshot.map(item => item.id),
-                    spaces: cartSnapshot.reduce((total, item) => total + item.quantity, 0)
-                };
-                
-                // B. POST - Save the order to database
-                console.log(' Saving order...');
-                const savedOrder = await this.saveOrder(orderData);
-                
-                // C. PUT - Update spaces for each lesson in the cart
-                console.log(' Updating lesson spaces...');
-                const updatePromises = cartSnapshot.map(item => {
-                    const lesson = this.lessons.find(l => l.id === item.id);
-                    if (lesson) {
-                        return this.updateLessonSpaces(item.id, lesson.spaces);
-                    }
-                });
-                
-                await Promise.all(updatePromises.filter(p => p !== undefined));
-                console.log(' All lesson spaces updated');
-                
-                // Generate order number for display
-                const orderNumber = savedOrder.order?._id || savedOrder._id || 'ORD' + Date.now();
-                
-                // Store confirmation details using snapshots
-                this.confirmedOrderDetails = {
-                    orderNumber: orderNumber,
-                    name: nameSnapshot,
-                    phone: phoneSnapshot,
-                    items: cartSnapshot,
-                    total: totalSnapshot
-                };
-                
-                console.log(' Order confirmation details:', this.confirmedOrderDetails);
-                
-                // Show confirmation message FIRST
-                this.showOrderConfirmation = true;
-                
-                // Clear form and cart
-                this.cart = [];
-                this.checkoutName = '';
-                this.checkoutPhone = '';
-                
-                // Hide confirmation and return to lessons after delay
-                setTimeout(() => {
-                    console.log('Timeout executed, hiding confirmation');
-                    this.showOrderConfirmation = false;
-                    this.showCartPage = false;
-                    
-                    // Refresh lessons from backend to get updated spaces
-                    setTimeout(() => {
-                this.fetchLessons();
-                }, 1000);
-            }, 9000);
-            
-            } catch (error) {
-                alert('There was an error processing your order. Please try again.\n\nError: ' + error.message);
-                console.error(' Checkout error:', error);
+
+    async checkout() {
+        if (!this.isCheckoutEnabled) return;
+    
+    try {
+        console.log('Starting checkout process...');
+        
+        // Take snapshot of cart BEFORE any async operations
+        const cartSnapshot = [...this.cart];
+        const totalSnapshot = this.cartTotal;
+        const nameSnapshot = this.checkoutName;
+        const phoneSnapshot = this.checkoutPhone;
+        
+        console.log('Cart snapshot:', cartSnapshot);
+        
+        // Prepare order data for backend
+        const orderData = {
+            name: nameSnapshot,
+            phoneNumber: phoneSnapshot,
+            lessonIDs: cartSnapshot.map(item => item.id),
+            spaces: cartSnapshot.reduce((total, item) => total + item.quantity, 0)
+        };
+        
+        console.log('Saving order...');
+        const savedOrder = await this.saveOrder(orderData);
+        console.log('Order saved:', savedOrder);
+        
+        // Update lesson spaces
+        console.log('Updating lesson spaces...');
+        const updatePromises = cartSnapshot.map(item => {
+            const lesson = this.lessons.find(l => l.id === item.id);
+            if (lesson) {
+                return this.updateLessonSpaces(item.id, lesson.spaces);
             }
-        },
+        });
+        
+        await Promise.all(updatePromises.filter(p => p !== undefined));
+        console.log('All lesson spaces updated');
+        
+        // Generate order number for display
+        const orderNumber = savedOrder.order?._id || savedOrder._id || 'ORD' + Date.now();
+        
+        // Store confirmation details using snapshots
+        this.confirmedOrderDetails = {
+            orderNumber: orderNumber,
+            name: nameSnapshot,
+            phone: phoneSnapshot,
+            items: cartSnapshot,
+            total: totalSnapshot
+        };
+        
+        console.log('Order confirmation details set:', this.confirmedOrderDetails);
+        
+        // Show confirmation message
+        this.showOrderConfirmation = true;
+        console.log('showOrderConfirmation set to:', this.showOrderConfirmation);
+        
+        // Clear form and cart
+        this.cart = [];
+        this.checkoutName = '';
+        this.checkoutPhone = '';
+        
+        console.log('Checkout completed successfully');
+        
+    } catch (error) {
+        console.error('Checkout error:', error);
+        alert('There was an error processing your order. Please try again.\n\nError: ' + error.message);
+    }
+},
+
+continueShopping() {
+    this.showOrderConfirmation = false;
+    this.showCartPage = false;
+    this.fetchLessons();
+},
+       
         
         showLessonInfo(lesson) {
             this.selectedLesson = lesson;
