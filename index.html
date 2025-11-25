@@ -138,7 +138,7 @@
                     <p class="confirmation-note">You will receive an email confirmation shortly.</p>
                    </div>
         <!-- Checkout Form -->
-            <div v-else>
+            <div v-else-if="!showOrderConfirmation">
              <div class="form-group">
              <label for="name"><strong>Name:</strong></label>
              <input 
