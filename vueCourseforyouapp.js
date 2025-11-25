@@ -12,7 +12,7 @@ new Vue({
         confirmedOrderDetails: null, // holds details of the confirmed order 
         showLessonModal: false, // boolean to control lesson info modal visibility
         selectedLesson: null,   // holds the currently selected lesson for modal display 
-        apiBaseUrl: 'https://expressjs-flj.onrender.com', // Base URL for API request
+        apiBaseUrl: 'https://expressjs-flj.onrender.com/api', // Base URL for API request
 
         lessons: [ //array of lesson objects with details
             {
@@ -213,32 +213,34 @@ new Vue({
             this.checkoutName = '';
             this.checkoutPhone = '';
         },
-       
+        
         // POST - Save new order to backend 
-        async saveOrder(orderData) {
-            try {
-                const response = await fetch(`${this.apiBaseUrl}/orders`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(orderData)
-                });
-                
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+            async saveOrder(orderData) {
+                try {
+                    const response = await fetch(`${this.apiBaseUrl}/api/orders`, {  
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(orderData)
+                    });
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const savedOrder = await response.json();
+                    console.log('Order saved successfully:', savedOrder);
+                    return savedOrder;
+                    
+                } catch (error) {
+                    console.error('Error saving order:', error);
+                    throw error;
                 }
-                
-                const savedOrder = await response.json();
-                console.log(' Order saved successfully:', savedOrder);
-                return savedOrder;
-                
-            } catch (error) {
-                console.error('❌ Error saving order:', error);
-                throw error;
-            }
-        },
+            },
+       
+        
 
         // PUT - Update lesson spaces in backend 
         async updateLessonSpaces(lessonId, newSpaces) {
@@ -265,82 +267,107 @@ new Vue({
                 throw error;
             }
         },
-
-    // integrate all three fetch operations
+        
         async checkout() {
             if (!this.isCheckoutEnabled) return;
-            
+        
             try {
-                // Prepare order data for backend
-                const orderData = {
-                    name: this.checkoutName,
-                    phoneNumber: this.checkoutPhone,
-                    lessonIDs: this.cart.map(item => item.id),
-                    spaces: this.cart.reduce((total, item) => total + item.quantity, 0),
-                    // Backend will calculate totalPrice, but we can send it too
-                    totalPrice: this.cartTotal
-                };
+            console.log('Starting checkout process...');
+            console.log('Cart contents:', this.cart);
+            
+            // Validate cart items before proceeding
+            this.cart.forEach(item => {
+                const lessonId = item.id;
+                console.log(` Validating cart item: ${item.lesson} - ID: ${lessonId}`);
                 
-                // B. POST - Save the order to database
-                console.log('📝 Saving order to database...');
-                const savedOrder = await this.saveOrder(orderData);
+                // Check if it's a valid MongoDB ObjectId (24-character hex string)
+                if (!lessonId || typeof lessonId !== 'string' || lessonId.length !== 24) {
+                    throw new Error(`Invalid lesson ID format for ${item.lesson}. Expected 24-character string, got: ${lessonId}`);
+                }
                 
-                // C. PUT - Update spaces for each lesson in the cart
-                console.log('🔄 Updating lesson spaces...');
-                const updatePromises = this.cart.map(item => {
-                    const lesson = this.lessons.find(l => l.id === item.id);
-                    if (lesson) {
-                        // Send the current space count to backend
-                        return this.updateLessonSpaces(item.id, lesson.spaces);
-                    }
-                });
-                
-                await Promise.all(updatePromises);
-                console.log('✅ All lesson spaces updated');
-                
-                // Generate order number for display
-                const orderNumber = savedOrder.order?._id || 'ORD' + Date.now();
-                
-                // Store confirmation details
-                this.confirmedOrderDetails = {
-                    orderNumber: orderNumber,
-                    name: this.checkoutName,
-                    phone: this.checkoutPhone,
-                    items: [...this.cart],
-                    total: this.cartTotal
-                };
-                
-                // Show confirmation message
-                this.showOrderConfirmation = true;
-                
-                // Clear cart and reset after delay
-                setTimeout(() => {
-                    this.cart = [];
-                    this.checkoutName = '';
-                    this.checkoutPhone = '';
-                    this.showCartPage = false;
-                    this.showOrderConfirmation = false;
-                    
-                    // Refresh lessons from backend to get updated spaces
-                    this.fetchLessons();
-                }, 9000);
-                
-            } catch (error) {
-                alert('There was an error processing your order. Please try again.\n\nError: ' + error.message);
-                console.error('Checkout error:', error);
-            }
-        },
-       
-        showLessonInfo(lesson) {
-                this.selectedLesson = lesson;
-                this.showLessonModal = true;
-        },
-    
+                if (!/^[0-9a-fA-F]{24}$/.test(lessonId)) {
+                    throw new Error(`Invalid lesson ID for ${item.lesson}. Not a valid hex string: ${lessonId}`);
+                }
+            });
 
-        hideLessonInfo() {
-                this.showLessonModal = false;
-                this.selectedLesson = null;
+            // Prepare order data for backend
+            const orderData = {
+                name: this.checkoutName,
+                phoneNumber: this.checkoutPhone,
+                lessonIDs: this.cart.map(item => item.id),
+                spaces: this.cart.reduce((total, item) => total + item.quantity, 0),
+                totalPrice: this.cartTotal
+            };
+            
+            console.log('📦 Order data to send:', orderData);
+            
+            // B. POST - Save the order to database
+            console.log(' Saving order to database...');
+            const savedOrder = await this.saveOrder(orderData);
+            console.log(' Order saved successfully:', savedOrder);
+            
+            // C. PUT - Update spaces for each lesson in the cart
+            console.log(' Updating lesson spaces...');
+            const updatePromises = this.cart.map(item => {
+                const lesson = this.lessons.find(l => l.id === item.id);
+                if (lesson) {
+                    console.log(`📚 Updating lesson ${lesson.lesson} to ${lesson.spaces} spaces`);
+                    // Send the current space count to backend
+                    return this.updateLessonSpaces(item.id, lesson.spaces);
+                }
+            });
+            
+            // Filter out any undefined promises and wait for all updates
+            const validUpdatePromises = updatePromises.filter(promise => promise !== undefined);
+            await Promise.all(validUpdatePromises);
+            console.log(' All lesson spaces updated');
+            
+            // Generate order number for display
+            const orderNumber = savedOrder._id || savedOrder.order?._id || 'ORD' + Date.now();
+            
+            // Store confirmation details
+            this.confirmedOrderDetails = {
+                orderNumber: orderNumber,
+                name: this.checkoutName,
+                phone: this.checkoutPhone,
+                items: [...this.cart],
+                total: this.cartTotal
+            };
+            
+            // Show confirmation message
+            this.showOrderConfirmation = true;
+            console.log('Order completed successfully!');
+            
+            // Clear cart and reset after delay
+            setTimeout(() => {
+                this.cart = [];
+                this.checkoutName = '';
+                this.checkoutPhone = '';
+                this.showCartPage = false;
+                this.showOrderConfirmation = false;
+                
+                // Refresh lessons from backend to get updated spaces
+                this.fetchLessons();
+            }, 9000);
+            
+        } catch (error) {
+            console.error('Checkout failed:', error);
+            alert('There was an error processing your order. Please try again.\n\nError: ' + error.message);
+        }
+    },
+    
+    showLessonInfo(lesson) {
+        this.selectedLesson = lesson;
+        this.showLessonModal = true;
+    },
+
+    hideLessonInfo() {
+        this.showLessonModal = false;
+        this.selectedLesson = null;
         }
 
     }
-});
+ });
+        
+
+        
