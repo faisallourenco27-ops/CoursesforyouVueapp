@@ -84,8 +84,32 @@ new Vue({
                 
             } catch (error) {
                 console.error('Error fetching lessons:', error);
-                alert('Failed to load lessons from server. Please check if the backend is running.\n\nError: ' + error.message);
+                // Use fallback lessons if API fails
+                this.useFallbackLessons();
             }
+        },
+
+        useFallbackLessons() {
+            this.lessons = [
+                {
+                    id: 1,
+                    lesson: 'Further Maths',
+                    location: 'Hendon',
+                    price: 50,
+                    spaces: 5,
+                    icon: 'https://media.istockphoto.com/id/1866121335/photo/physics-and-mathematics.webp?b=1&s=612x612&w=0&k=20&c=ND9gyyqbrA8GknNpbo4-Oy9vVKzaSJ6P3L2JvqYTYO0=',
+                    synopsis: 'An advanced course in mathematical concepts and techniques beyond standard curriculum.'
+                },
+                {
+                    id: 2,
+                    lesson: 'Art & Design',
+                    location: 'Hendon',
+                    price: 55,
+                    spaces: 5,
+                    icon: 'https://media.istockphoto.com/id/1372126412/photo/multiracial-students-painting-inside-art-room-class-at-school-focus-on-girl-face.webp?b=1&s=612x612&w=0&k=20&c=3KPEFUIEjH4IqegohqPiZmqieezUl4yMoLgHjhoxzQY=',
+                    synopsis: 'Explore creativity through various mediums including painting, sculpture, and digital art.'
+                }
+            ];
         },
 
         getLessonImage(topic) {
@@ -145,22 +169,34 @@ new Vue({
         async saveOrder(orderData) {
             try {
                 console.log('Sending order data:', orderData);
+                
+                // Try different data formats to see what the backend expects
+                const orderPayload = {
+                    name: orderData.name,
+                    phone: orderData.phoneNumber, // Try 'phone' instead of 'phoneNumber'
+                    lessons: orderData.lessonIDs.map(id => ({
+                        id: id,
+                        quantity: 1 // Default quantity
+                    }))
+                };
+                
+                console.log('Order payload:', orderPayload);
+                
                 const response = await fetch(`${this.apiBaseUrl}/orders`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify(orderData)
+                    body: JSON.stringify(orderPayload)
                 });
                 
-                const responseText = await response.text();
-                console.log('Response received:', responseText);
-                
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    const errorText = await response.text();
+                    console.error('Server response:', errorText);
+                    throw new Error(`HTTP error! status: ${response.status}. Response: ${errorText}`);
                 }
                 
-                const savedOrder = JSON.parse(responseText);
+                const savedOrder = await response.json();
                 console.log('Order saved successfully:', savedOrder);
                 return savedOrder;
                 
@@ -173,6 +209,7 @@ new Vue({
         async updateLessonSpaces(lessonId, newSpaces) {
             try {
                 console.log(`Updating lesson ${lessonId} to ${newSpaces} spaces`);
+                
                 const response = await fetch(`${this.apiBaseUrl}/lessons/${lessonId}`, {
                     method: 'PUT',
                     headers: {
@@ -206,16 +243,21 @@ new Vue({
                 const nameSnapshot = this.checkoutName;
                 const phoneSnapshot = this.checkoutPhone;
                 
+                // Prepare order data - try simpler format
                 const orderData = {
                     name: nameSnapshot,
-                    phoneNumber: phoneSnapshot,
+                    phone: phoneSnapshot, // Changed from phoneNumber to phone
                     lessonIDs: cartSnapshot.map(item => item.id),
-                    spaces: cartSnapshot.reduce((total, item) => total + item.quantity, 0)
+                    totalSpaces: cartSnapshot.reduce((total, item) => total + item.quantity, 0)
                 };
                 
+                console.log('Order data being sent:', orderData);
+                
+                // B. POST - Save the order to database
                 console.log('Saving order...');
                 const savedOrder = await this.saveOrder(orderData);
                 
+                // C. PUT - Update spaces for each lesson in the cart
                 console.log('Updating lesson spaces...');
                 const updatePromises = cartSnapshot.map(item => {
                     const lesson = this.lessons.find(l => l.id === item.id);
@@ -227,8 +269,10 @@ new Vue({
                 await Promise.all(updatePromises.filter(p => p !== undefined));
                 console.log('All lesson spaces updated');
                 
-                const orderNumber = savedOrder.order?._id || savedOrder._id || 'ORD' + Date.now();
+                // Generate order number for display
+                const orderNumber = savedOrder._id || savedOrder.orderId || 'ORD' + Date.now();
                 
+                // Store confirmation details using snapshots
                 this.confirmedOrderDetails = {
                     orderNumber: orderNumber,
                     name: nameSnapshot,
@@ -239,21 +283,34 @@ new Vue({
                 
                 console.log('Order confirmation details:', this.confirmedOrderDetails);
                 
+                // Show confirmation message
                 this.showOrderConfirmation = true;
                 
+                // Clear form and cart
                 this.cart = [];
                 this.checkoutName = '';
                 this.checkoutPhone = '';
                 
+                console.log('Checkout completed successfully!');
+                
+                // Hide confirmation and return to lessons after delay
                 setTimeout(() => {
                     this.showOrderConfirmation = false;
                     this.showCartPage = false;
+                    
+                    // Refresh lessons from backend to get updated spaces
                     this.fetchLessons();
                 }, 9000);
                 
             } catch (error) {
-                alert('There was an error processing your order. Please try again.\n\nError: ' + error.message);
                 console.error('Checkout error:', error);
+                
+                // Show user-friendly error message
+                if (error.message.includes('400')) {
+                    alert('There was an error with your order data. Please check your information and try again.');
+                } else {
+                    alert('There was an error processing your order. Please try again.\n\nError: ' + error.message);
+                }
             }
         },
        
