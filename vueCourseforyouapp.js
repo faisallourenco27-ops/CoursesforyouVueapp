@@ -58,37 +58,36 @@ new Vue({
     },
     
     methods: {
-        // A. GET - Fetch all lessons (3%)
         async fetchLessons() {
-            try {
-                console.log('📚 Fetching lessons from:', `${this.apiBaseUrl}/lessons`);
-                const response = await fetch(`${this.apiBaseUrl}/lessons`);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                console.log('✅ Received data:', data);
-                
-                // Transform backend data to match frontend format
-                this.lessons = data.map(lesson => ({
-                    id: lesson._id,
-                    lesson: lesson.topic,
-                    location: lesson.location,
-                    price: lesson.price,
-                    spaces: lesson.space,
-                    icon: this.getLessonImage(lesson.topic),
-                    synopsis: `Learn ${lesson.topic} at our ${lesson.location} location. An engaging course designed to help you master the subject.`
-                }));
-                
-                console.log(' Lessons fetched successfully:', this.lessons.length, 'lessons');
-                
-            } catch (error) {
-                console.error('Error fetching lessons:', error);
-                alert('Failed to load lessons from server. Please check if the backend is running.\n\nError: ' + error.message);
-            }
-        },
+    try {
+        console.log(' Fetching lessons from:', `${this.apiBaseUrl}/lessons`);
+        const response = await fetch(`${this.apiBaseUrl}/lessons`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log(' Received data:', data);
+        
+        this.lessons = data.map(lesson => ({
+            id: lesson.id,                     // <-- backend gives this already
+            lesson: lesson.topic,              // UI-friendly name
+            location: lesson.location,
+            price: lesson.price,
+            spaces: lesson.space,              // backend: space → frontend: spaces
+            icon: this.getLessonImage(lesson.topic),
+            synopsis: `Learn ${lesson.topic} at our ${lesson.location} location. An engaging course designed to help you master the subject.`
+        }));
+
+        console.log(' Lessons transformed successfully:', this.lessons);
+
+    } catch (error) {
+        console.error('Error fetching lessons:', error);
+        alert('Failed to load lessons from server. Please check if the backend is running.\n\nError: ' + error.message);
+    }
+},
+
 
         getLessonImage(topic) {
             // Map lesson topics to their image URLs
