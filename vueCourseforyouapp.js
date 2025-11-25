@@ -149,8 +149,8 @@ new Vue({
     methods: {
         async fetchLessons() {
             try {
-                console.log(' Fetching lessons from:', `${this.apiBaseUrl}/lessons`);
-                const response = await fetch(`${this.apiBaseUrl}/lessons`);
+                console.log(' Fetching lessons from:', `${this.apiBaseUrl}/api/lessons`);
+                const response = await fetch(`${this.apiBaseUrl}/api/lessons`);
                 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
