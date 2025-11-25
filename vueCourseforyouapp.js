@@ -246,78 +246,55 @@ new Vue({
         },
        
         async saveOrder(orderData) {
-            // If using mock data, simulate successful order
-            if (this.useMockData) {
-                console.log('Using mock order saving (API not available)');
-                return new Promise((resolve) => {
-                    setTimeout(() => {
-                        resolve({ 
-                            _id: 'MOCK_ORDER_' + Date.now(),
-                            status: 'success' 
-                        });
-                    }, 1000);
+    // If using mock data, simulate successful order
+    if (this.useMockData) {
+        console.log('Using mock order saving (API not available)');
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                resolve({ 
+                    _id: 'MOCK_ORDER_' + Date.now(),
+                    status: 'success' 
                 });
-            }
+            }, 1000);
+        });
+    }
 
-            try {
-                console.log('Sending order data to API:', orderData);
-                
-                // Try multiple data formats to find what the backend expects
-                const orderPayloads = [
-                    // Format 1: Simple format
-                    {
-                        name: orderData.name,
-                        phone: orderData.phone
-                    },
-                    // Format 2: With lesson IDs
-                    {
-                        name: orderData.name,
-                        phone: orderData.phone,
-                        lessons: orderData.lessonIDs
-                    },
-                    // Format 3: With spaces
-                    {
-                        name: orderData.name,
-                        phone: orderData.phone,
-                        spaces: orderData.totalSpaces
-                    }
-                ];
+    try {
+        console.log('Sending order data to API:', orderData);
+        
+        // Use the exact field names the backend expects
+        const orderPayload = {
+            name: orderData.name,
+            phoneNumber: orderData.phone, // Backend expects phoneNumber, not phone
+            lessonIDs: orderData.lessonIDs, // Array of lesson IDs
+            spaces: orderData.totalSpaces // Total number of spaces
+        };
 
-                let lastError;
-                
-                for (let payload of orderPayloads) {
-                    try {
-                        console.log('Trying payload:', payload);
-                        const response = await fetch(`${this.apiBaseUrl}/orders`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify(payload)
-                        });
-                        
-                        if (response.ok) {
-                            const savedOrder = await response.json();
-                            console.log('Order saved successfully with payload:', payload);
-                            return savedOrder;
-                        } else {
-                            lastError = `HTTP ${response.status} for payload: ${JSON.stringify(payload)}`;
-                            console.warn('Payload failed:', lastError);
-                        }
-                    } catch (error) {
-                        lastError = error.message;
-                        console.warn('Payload error:', error.message);
-                    }
-                }
-                
-                // If all payloads failed, throw the last error
-                throw new Error(`All order formats failed. Last error: ${lastError}`);
-                
-            } catch (error) {
-                console.error('Error saving order:', error);
-                throw error;
-            }
-        },
+        console.log('Order payload with correct field names:', orderPayload);
+        
+        const response = await fetch(`${this.apiBaseUrl}/orders`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(orderPayload)
+        });
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Server response:', errorText);
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const savedOrder = await response.json();
+        console.log('Order saved successfully:', savedOrder);
+        return savedOrder;
+        
+    } catch (error) {
+        console.error('Error saving order:', error);
+        throw error;
+    }
+},
 
         async updateLessonSpaces(lessonId, newSpaces) {
             // If using mock data, simulate successful update
