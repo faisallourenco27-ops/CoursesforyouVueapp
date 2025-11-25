@@ -17,7 +17,7 @@ A Vue.js shopping cart application for course bookings.
 - Font Awesome Icons
 
 ## Usage
-1. Open `Courseforyouapp.html` in a web browser
+1. Open `https://faisallourenco27-ops.github.io/CoursesforyouVueapp/` in a web browser
 2. Browse available courses
 3. Add courses to cart
 4. Proceed to checkout
