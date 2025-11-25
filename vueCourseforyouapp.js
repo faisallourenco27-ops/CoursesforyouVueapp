@@ -12,7 +12,7 @@ new Vue({
         confirmedOrderDetails: null,
         showLessonModal: false,
         selectedLesson: null,
-        apiBaseUrl: 'https://expressjs-flj.onrender.com/api', // Fixed: Added /api
+        apiBaseUrl: 'https://expressjs-flj.onrender.com/api',
         lessons: []
     },
 
@@ -58,10 +58,9 @@ new Vue({
     },
     
     methods: {
-        // A. GET - Fetch all lessons (3%)
         async fetchLessons() {
             try {
-                console.log(' Fetching lessons from:', `${this.apiBaseUrl}/lessons`);
+                console.log('Fetching lessons from:', `${this.apiBaseUrl}/lessons`);
                 const response = await fetch(`${this.apiBaseUrl}/lessons`);
                 
                 if (!response.ok) {
@@ -69,9 +68,8 @@ new Vue({
                 }
                 
                 const data = await response.json();
-                console.log(' Received data:', data);
+                console.log('Received data:', data);
                 
-                // Transform backend data to match frontend format
                 this.lessons = data.map(lesson => ({
                     id: lesson._id,
                     lesson: lesson.topic,
@@ -91,7 +89,6 @@ new Vue({
         },
 
         getLessonImage(topic) {
-            // Map lesson topics to their image URLs
             const imageMap = {
                 'Further Maths': 'https://media.istockphoto.com/id/1866121335/photo/physics-and-mathematics.webp?b=1&s=612x612&w=0&k=20&c=ND9gyyqbrA8GknNpbo4-Oy9vVKzaSJ6P3L2JvqYTYO0=',
                 'Art & Design': 'https://media.istockphoto.com/id/1372126412/photo/multiracial-students-painting-inside-art-room-class-at-school-focus-on-girl-face.webp?b=1&s=612x612&w=0&k=20&c=3KPEFUIEjH4IqegohqPiZmqieezUl4yMoLgHjhoxzQY=',
@@ -140,14 +137,14 @@ new Vue({
         
         backToLessons() {
             this.showCartPage = false;
+            this.showOrderConfirmation = false;
             this.checkoutName = '';
             this.checkoutPhone = '';
         },
        
-        // B. POST - Save new order to backend (3%)
         async saveOrder(orderData) {
             try {
-                console.log(' Sending order data:', orderData);
+                console.log('Sending order data:', orderData);
                 const response = await fetch(`${this.apiBaseUrl}/orders`, {
                     method: 'POST',
                     headers: {
@@ -164,19 +161,18 @@ new Vue({
                 }
                 
                 const savedOrder = JSON.parse(responseText);
-                console.log(' Order saved successfully:', savedOrder);
+                console.log('Order saved successfully:', savedOrder);
                 return savedOrder;
                 
             } catch (error) {
-                console.error('❌ Error saving order:', error);
+                console.error('Error saving order:', error);
                 throw error;
             }
         },
 
-        // C. PUT - Update lesson spaces in backend (3%)
         async updateLessonSpaces(lessonId, newSpaces) {
             try {
-                console.log(` Updating lesson ${lessonId} to ${newSpaces} spaces`);
+                console.log(`Updating lesson ${lessonId} to ${newSpaces} spaces`);
                 const response = await fetch(`${this.apiBaseUrl}/lessons/${lessonId}`, {
                     method: 'PUT',
                     headers: {
@@ -190,29 +186,26 @@ new Vue({
                 }
                 
                 const updatedLesson = await response.json();
-                console.log('✅ Lesson spaces updated:', updatedLesson);
+                console.log('Lesson spaces updated:', updatedLesson);
                 return updatedLesson;
                 
             } catch (error) {
-                console.error(' Error updating lesson spaces:', error);
+                console.error('Error updating lesson spaces:', error);
                 throw error;
             }
         },
 
-        // Checkout integrates all three fetch operations
         async checkout() {
             if (!this.isCheckoutEnabled) return;
             
             try {
-                console.log('🛒 Starting checkout process...');
+                console.log('Starting checkout process...');
                 
-                // Take snapshot of cart BEFORE any async operations
                 const cartSnapshot = [...this.cart];
                 const totalSnapshot = this.cartTotal;
                 const nameSnapshot = this.checkoutName;
                 const phoneSnapshot = this.checkoutPhone;
                 
-                // Prepare order data for backend
                 const orderData = {
                     name: nameSnapshot,
                     phoneNumber: phoneSnapshot,
@@ -220,12 +213,10 @@ new Vue({
                     spaces: cartSnapshot.reduce((total, item) => total + item.quantity, 0)
                 };
                 
-                // B. POST - Save the order to database
                 console.log('Saving order...');
                 const savedOrder = await this.saveOrder(orderData);
                 
-                // C. PUT - Update spaces for each lesson in the cart
-                console.log(' Updating lesson spaces...');
+                console.log('Updating lesson spaces...');
                 const updatePromises = cartSnapshot.map(item => {
                     const lesson = this.lessons.find(l => l.id === item.id);
                     if (lesson) {
@@ -234,12 +225,10 @@ new Vue({
                 });
                 
                 await Promise.all(updatePromises.filter(p => p !== undefined));
-                console.log(' All lesson spaces updated');
+                console.log('All lesson spaces updated');
                 
-                // Generate order number for display
                 const orderNumber = savedOrder.order?._id || savedOrder._id || 'ORD' + Date.now();
                 
-                // Store confirmation details using snapshots
                 this.confirmedOrderDetails = {
                     orderNumber: orderNumber,
                     name: nameSnapshot,
@@ -248,22 +237,17 @@ new Vue({
                     total: totalSnapshot
                 };
                 
-                console.log(' Order confirmation details:', this.confirmedOrderDetails);
+                console.log('Order confirmation details:', this.confirmedOrderDetails);
                 
-                // Show confirmation message FIRST
                 this.showOrderConfirmation = true;
                 
-                // Clear form and cart
                 this.cart = [];
                 this.checkoutName = '';
                 this.checkoutPhone = '';
                 
-                // Hide confirmation and return to lessons after delay
                 setTimeout(() => {
                     this.showOrderConfirmation = false;
                     this.showCartPage = false;
-                    
-                    // Refresh lessons from backend to get updated spaces
                     this.fetchLessons();
                 }, 9000);
                 

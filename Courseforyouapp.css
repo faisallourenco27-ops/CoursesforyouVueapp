@@ -313,6 +313,23 @@ button:disabled {
     color: #6c757d;
 }
 
+/* Continue Shopping Button Styles */
+.continue-shopping-btn {
+    background: #33004df9;
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s;
+    margin-top: 20px;
+}
+
+.continue-shopping-btn:hover {
+    background: #000904;
+}
+
 .modal-overlay {
     position: fixed;
     top: 0;
