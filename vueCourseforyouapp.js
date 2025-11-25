@@ -12,7 +12,7 @@ new Vue({
         confirmedOrderDetails: null, // holds details of the confirmed order 
         showLessonModal: false, // boolean to control lesson info modal visibility
         selectedLesson: null,   // holds the currently selected lesson for modal display 
-        apiBaseUrl: 'https://expressjs-flj.onrender.com/api', // Base URL for API request
+        apiBaseUrl: 'https://expressjs-flj.onrender.com', // Base URL for API request
 
         lessons: [ //array of lesson objects with details
             {
@@ -161,7 +161,7 @@ new Vue({
                 
                 // Transform backend data to match frontend format
                 this.lessons = data.map(lesson => ({
-                    id: lesson._id || lesson.id,
+                    id: lesson._id,
                     lesson: lesson.topic || lesson.lesson,
                     location: lesson.location,
                     price: lesson.price,
