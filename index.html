@@ -88,11 +88,13 @@
                     <h2>Shopping Cart</h2>
                 </div>
 
-                <div v-if="cart.length === 0" class="empty-cart">
+                <div v-if="cart.length === 0 && !showOrderConfirmation" class="empty-cart">
                     <p>Your cart is empty</p>
                 </div>
 
-                <div v-else class="cart-items">
+            <div v-else class="cart-items">
+
+                 <div v-else class="cart-items">
                     <div v-for="item in cart" :key="item.id" class="cart-item">
                         <div class="item-details">
                             <h3>{{ item.lesson }}</h3>
