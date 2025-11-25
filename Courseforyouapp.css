@@ -266,6 +266,7 @@ button:disabled {
 }
 
 .order-confirmation {
+    display: block; /* FIX: Ensure it is not hidden by a default rule */
     text-align: center;
     padding: 30px;
     margin-top: 20px;
