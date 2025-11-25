@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Courses for you</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="Courseforyouapp.css"> 
+    <link rel="stylesheet" href="Courseforyouapp.css">
     <script src="https://unpkg.com/vue@2.7.8/dist/vue.js"></script>
     <script src="vueCourseforyouapp.js" defer></script>
 </head>
@@ -16,231 +16,111 @@
                 <h1><i class="fas fa-graduation-cap"></i> Courses for you</h1>
             </header>
 
-        <div v-if="!showCartPage">
+            <!-- Lessons Page -->
+            <div v-if="!showCartPage">
                 <div class="controls">
                     <div class="sort-controls">
                         <label><strong>Sort by:</strong></label>
                         <select v-model="sortBy">
                             <option value="lesson">Lesson</option>
                             <option value="location">Location</option>
-                            <option value="price">Price</option>         
+                            <option value="price">Price</option>
                             <option value="spaces">Available Spaces</option>
                         </select>
-                        
-                        <label><strong>Order:</strong></label> 
+
+                        <label><strong>Order:</strong></label>
                         <select v-model="sortOrder">
                             <option value="asc">Ascending</option>
                             <option value="desc">Descending</option>
                         </select>
                     </div>
-            </div>
-            <div class="cart-summary">
+                </div>
+
+                <div class="cart-summary">
                     <strong>Cart: {{ cartCount }} items</strong>
                     <button class="view-cart-btn" @click="viewCart()">
                         <i class="fas fa-shopping-cart"></i> View Cart
                     </button>
                 </div>
 
-    <div class="lessons-grid">
-    <div v-for="lesson in sortedLessons" :key="lesson.id" class="lesson-card">
-        <div class="lesson-icon">
-            <img :src="lesson.icon" :alt="lesson.lesson">
-        </div>
-        <div class="lesson-detail">
-            <strong>Lesson:</strong>
-            <span>{{ lesson.lesson }}</span>
-        </div>
-        <div class="lesson-detail">
-            <strong>Location:</strong>
-            <span>{{ lesson.location }}</span>
-        </div>
-        <div class="lesson-detail">
-            <strong>Price:</strong>
-            <span>£{{ lesson.price }}</span>
-        </div>
-        <div class="lesson-detail">
-            <strong>Spaces:</strong>
-            <span>{{ lesson.spaces }} available</span>
-        </div>
+                <div class="lessons-grid">
+                    <div v-for="lesson in sortedLessons" :key="lesson.id" class="lesson-card">
+                        <div class="lesson-icon">
+                            <img :src="lesson.icon" :alt="lesson.lesson">
+                        </div>
 
-        <button 
-            class="more-info-btn"
-             @click="showLessonInfo(lesson)"
-        >
-        <i class="fas fa-info-circle"></i> More Info
-        </button>
+                        <div class="lesson-detail">
+                            <strong>Lesson:</strong>
+                            <span>{{ lesson.lesson }}</span>
+                        </div>
+                        <div class="lesson-detail">
+                            <strong>Location:</strong>
+                            <span>{{ lesson.location }}</span>
+                        </div>
+                        <div class="lesson-detail">
+                            <strong>Price:</strong>
+                            <span>£{{ lesson.price }}</span>
+                        </div>
+                        <div class="lesson-detail">
+                            <strong>Spaces:</strong>
+                            <span>{{ lesson.spaces }} available</span>
+                        </div>
 
-        <button class="add-to-cart-btn" @click="addToCart(lesson)" :disabled="lesson.spaces === 0">
-        <i class="fas fa-cart-plus"></i>
-        {{ lesson.spaces > 0 ? 'Add to Cart' : 'No Spaces Available' }}
-        </button>
-
-        </div>
-    </div>
-</div>
-<!-- Shopping Cart Page -->
-<div v-else class="cart-page">
-    <div class="cart-header">
-        <button class="back-btn" @click="backToLessons()">
-            <i class="fas fa-arrow-left"></i> Back to Lessons
-        </button>
-        <h2>Shopping Cart</h2>
-    </div>
-
-    <!-- Empty cart message (only when no confirmation) -->
-    <div v-if="cart.length === 0 && !showOrderConfirmation" class="empty-cart">
-        <p>Your cart is empty</p>
-    </div>
-
-    <!-- Cart content + checkout / confirmation -->
-    <div v-else class="cart-items">
-        <div v-for="item in cart" :key="item.id" class="cart-item">
-            <div class="item-details">
-                <h3>{{ item.lesson }}</h3>
-                <p>Location: {{ item.location }}</p>
-                <p>Price: £{{ item.price }} each</p>
-                <p>Quantity: {{ item.quantity }}</p>
-                <p class="item-total">Total: £{{ item.price * item.quantity }}</p>
-            </div>
-            <button class="remove-btn" @click="removeFromCart(item)">
-                <i class="fas fa-trash"></i> Remove
-            </button>
-        </div>
-
-        <div class="cart-total">
-            <h3>Total: £{{ cartTotal }}</h3>
-        </div>
-
-        <!-- Checkout Form / Confirmation -->
-        <div class="checkout-form">
-            <h3>Checkout</h3>
-
-            <!-- Order Confirmation Message -->
-            <div v-if="showOrderConfirmation" class="order-confirmation">
-                <i class="fas fa-check-circle"></i>
-                <h3>Order Submitted Successfully!</h3>
-                <p><strong>Order Number:</strong> {{ confirmedOrderDetails.orderNumber }}</p>
-                <p><strong>Thank you, {{ confirmedOrderDetails.name }}!</strong></p>
-                <p>Your order has been confirmed and will be processed shortly.</p>
-                <p>We will contact you at {{ confirmedOrderDetails.phone }} if needed.</p>
-
-                <div class="order-summary">
-                    <h4>Order Summary:</h4>
-                    <ul>
-                        <li v-for="item in confirmedOrderDetails.items" :key="item.id">
-                            {{ item.lesson }} - {{ item.location }} (Qty: {{ item.quantity }}) -
-                            £{{ item.price * item.quantity }}
-                        </li>
-                    </ul>
-                    <p><strong>Total: £{{ confirmedOrderDetails.total }}</strong></p>
-                </div>
-
-                <p class="confirmation-note">You will receive an email confirmation shortly.</p>
-            </div>
-
-            <!-- Checkout inputs (only when not showing confirmation) -->
-            <div v-else>
-                <div class="form-group">
-                    <label for="name"><strong>Name:</strong></label>
-                    <input 
-                        type="text" 
-                        id="name" 
-                        v-model="checkoutName" 
-                        placeholder="Enter your name (letters only)"
-                        :class="{ 'invalid': checkoutName && !isNameValid }"
-                    >
-                    <span v-if="checkoutName && !isNameValid" class="error-message">
-                        Name must contain letters only
-                    </span>
-                </div>
-                
-                <div class="form-group">
-                    <label for="phone"><strong>Phone:</strong></label>
-                    <input 
-                        type="text" 
-                        id="phone" 
-                        v-model="checkoutPhone" 
-                        placeholder="Enter your phone number (numbers only)"
-                        :class="{ 'invalid': checkoutPhone && !isPhoneValid }"
-                    >
-                    <span v-if="checkoutPhone && !isPhoneValid" class="error-message">
-                        Phone must contain numbers only
-                    </span>
-                </div>
-
-                <button 
-                    class="checkout-btn" 
-                    @click="checkout()" 
-                    :disabled="!isCheckoutEnabled"
-                >
-                    <i class="fas fa-check"></i> Checkout
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-
-       
-
-
-     <!-- Lesson Info Modal -->
-            <div v-if="showLessonModal" class="modal-overlay" @click="hideLessonInfo">
-                <div class="modal-content" @click.stop>
-                    <div class="modal-header">
-                        <h2>{{ selectedLesson.lesson }}</h2>
-                        <button class="close-btn" @click="hideLessonInfo">
-                            <i class="fas fa-times"></i>
+                        <button
+                            class="more-info-btn"
+                            @click="showLessonInfo(lesson)"
+                        >
+                            <i class="fas fa-info-circle"></i> More Info
                         </button>
-                    </div>
-                    
-                    <div class="modal-body">
-                        <div class="lesson-icon-large">
-                            <img :src="selectedLesson.icon" :alt="selectedLesson.lesson">
-                        </div>
-                        
-                        <div class="lesson-details-modal">
-                            <div class="detail-row">
-                                <strong>Location:</strong>
-                                <span>{{ selectedLesson.location }}</span>
-                            </div>
-                            
-                            <div class="detail-row">
-                                <strong>Price:</strong>
-                                <span>£{{ selectedLesson.price }} per session</span>
-                            </div>
-                            
-                            <div class="detail-row">
-                                <strong>Spaces Available:</strong>
-                                <span :class="selectedLesson.spaces > 2 ? 'spaces-available' : 'spaces-low'">
-                                    {{ selectedLesson.spaces }}
-                                </span>
-                            </div>
-                        </div>
-                        
-                        <div class="synopsis-section">
-                            <h3>About this lesson:</h3>
-                            <p class="synopsis-text">{{ selectedLesson.synopsis }}</p>
-                        </div>
-                    </div>
-                    
-                    <div class="modal-footer">
-                        <button 
-                            class="add-to-cart-modal-btn"
-                            @click="addToCart(selectedLesson); hideLessonInfo();"
-                            :disabled="selectedLesson.spaces === 0"
+
+                        <button
+                            class="add-to-cart-btn"
+                            @click="addToCart(lesson)"
+                            :disabled="lesson.spaces === 0"
                         >
                             <i class="fas fa-cart-plus"></i>
-                            {{ selectedLesson.spaces > 0 ? 'Add to Cart' : 'No Spaces Available' }}
-                        </button>
-                        
-                        <button class="close-modal-btn" @click="hideLessonInfo">
-                            Close
+                            {{ lesson.spaces > 0 ? 'Add to Cart' : 'No Spaces Available' }}
                         </button>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-</body>
-</html>
+
+            <!-- Shopping Cart Page -->
+            <div v-else class="cart-page">
+                <div class="cart-header">
+                    <button class="back-btn" @click="backToLessons()">
+                        <i class="fas fa-arrow-left"></i> Back to Lessons
+                    </button>
+                    <h2>Shopping Cart</h2>
+                </div>
+
+                <!-- Empty cart message (only when no confirmation) -->
+                <div v-if="cart.length === 0 && !showOrderConfirmation" class="empty-cart">
+                    <p>Your cart is empty</p>
+                </div>
+
+                <!-- Cart content + checkout / confirmation -->
+                <div v-else class="cart-items">
+                    <div v-for="item in cart" :key="item.id" class="cart-item">
+                        <div class="item-details">
+                            <h3>{{ item.lesson }}</h3>
+                            <p>Location: {{ item.location }}</p>
+                            <p>Price: £{{ item.price }} each</p>
+                            <p>Quantity: {{ item.quantity }}</p>
+                            <p class="item-total">Total: £{{ item.price * item.quantity }}</p>
+                        </div>
+                        <button class="remove-btn" @click="removeFromCart(item)">
+                            <i class="fas fa-trash"></i> Remove
+                        </button>
+                    </div>
+
+                    <div class="cart-total">
+                        <h3>Total: £{{ cartTotal }}</h3>
+                    </div>
+
+                    <!-- Checkout Form / Confirmation -->
+                    <div class="checkout-form">
+                        <h3>Checkout</h3>
+
+                        <!-- Order Confirmation Message -->
+                        <div v-if="showOrderConfirmation" class="
