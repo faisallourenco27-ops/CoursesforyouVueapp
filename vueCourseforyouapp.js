@@ -149,8 +149,8 @@ new Vue({
     methods: {
         async fetchLessons() {
             try {
-                console.log(' Fetching lessons from:', `${this.apiBaseUrl}/api/lessons`);
-                const response = await fetch(`${this.apiBaseUrl}/api/lessons`);
+                console.log(' Fetching lessons from:', `${this.apiBaseUrl}/lessons`);
+                const response = await fetch(`${this.apiBaseUrl}/lessons`);
                 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
@@ -161,7 +161,8 @@ new Vue({
                 
                 // Transform backend data to match frontend format
                 this.lessons = data.map(lesson => ({
-                    id: lesson._id,
+                    //'id' field returned by the backend (which should now be the 24-char string)
+                    id: lesson.id, 
                     lesson: lesson.topic || lesson.lesson,
                     location: lesson.location,
                     price: lesson.price,
@@ -180,6 +181,28 @@ new Vue({
             }
         },
 
+        getLessonImage(topic) {
+            // Fallback images based on topic
+            const imageMap = {
+                'Further Maths': 'https://media.istockphoto.com/id/1866121335/photo/physics-and-mathematics.webp?b=1&s=612x612&w=0&k=20&c=ND9gyyqbrA8GknNpbo4-Oy9vVKzaSJ6P3L2JvqYTYO0=',
+                'Art & Design': 'https://media.istockphoto.com/id/1372126412/photo/multiracial-students-painting-inside-art-room-class-at-school-focus-on-girl-face.webp?b=1&s=612x612&w=0&k=20&c=3KPEFUIEjH4IqegohqPiZmqieezUl4yMoLgHjhoxzQY=',
+                'Boxing': 'https://cdn.pixabay.com/photo/2012/10/25/23/32/boxing-62867_1280.jpg',
+                'Karate': 'https://cdn.pixabay.com/photo/2022/01/28/07/39/marshall-6973880_1280.jpg',
+                'Football': 'https://cdn.pixabay.com/photo/2014/10/14/20/24/ball-488717_1280.jpg',
+                'Drama': 'https://cdn.pixabay.com/photo/2022/07/30/01/18/actor-7352882_1280.jpg',
+                'Music': 'https://cdn.pixabay.com/photo/2020/06/29/19/26/piano-5353974_1280.jpg',
+                'Basketball': 'https://cdn.pixabay.com/photo/2017/10/29/21/06/tahincioglu-basketball-super-league-2900843_1280.jpg',
+                'Coding': 'https://cdn.pixabay.com/photo/2015/12/04/14/05/code-1076536_1280.jpg',
+                'Cooking': 'https://cdn.pixabay.com/photo/2022/06/02/18/22/ramen-7238665_1280.jpg'
+            };
+            return imageMap[topic] || 'https://via.placeholder.com/400x300?text=Lesson';
+        },
+
+        useFallbackLessons() {
+            // Keep the hardcoded lessons as fallback
+            console.log('Using hardcoded fallback lessons');
+        },
+
         addToCart(lesson) {
             if (lesson.spaces > 0) {
             lesson.spaces--;
@@ -189,7 +212,7 @@ new Vue({
                 } else {
                     this.cart.push({
                     id: lesson.id,
-                    lesson: lesson.lesson,
+                    lesson: lesson.lesson, 
                     location: lesson.location,
                     price: lesson.price,
                     quantity: 1
@@ -318,56 +341,46 @@ new Vue({
             });
             
             // Filter out any undefined promises and wait for all updates
-            const validUpdatePromises = updatePromises.filter(promise => promise !== undefined);
-            await Promise.all(validUpdatePromises);
+            const validPromises = updatePromises.filter(p => p !== undefined);
+            await Promise.all(validPromises);
             console.log(' All lesson spaces updated');
             
-            // Generate order number for display
-            const orderNumber = savedOrder._id || savedOrder.order?._id || 'ORD' + Date.now();
-            
-            // Store confirmation details
+            // D. Show confirmation and clear cart
             this.confirmedOrderDetails = {
-                orderNumber: orderNumber,
                 name: this.checkoutName,
-                phone: this.checkoutPhone,
+                phoneNumber: this.checkoutPhone,
                 items: [...this.cart],
-                total: this.cartTotal
+                totalPrice: this.cartTotal,
+                orderDate: new Date().toLocaleString()
             };
             
-            // Show confirmation message
+            this.cart = [];
+            this.checkoutName = '';
+            this.checkoutPhone = '';
+            this.orderSubmitted = true;
             this.showOrderConfirmation = true;
-            console.log('Order completed successfully!');
             
-            // Clear cart and reset after delay
-            setTimeout(() => {
-                this.cart = [];
-                this.checkoutName = '';
-                this.checkoutPhone = '';
-                this.showCartPage = false;
-                this.showOrderConfirmation = false;
-                
-                // Refresh lessons from backend to get updated spaces
-                this.fetchLessons();
-            }, 9000);
+            console.log(' Checkout complete!');
             
         } catch (error) {
-            console.error('Checkout failed:', error);
-            alert('There was an error processing your order. Please try again.\n\nError: ' + error.message);
+            console.error(' Checkout error:', error);
+            alert(`There was an error processing your order. Please try again.\n\nError: ${error.message}`);
         }
     },
-    
-    showLessonInfo(lesson) {
-        this.selectedLesson = lesson;
-        this.showLessonModal = true;
-    },
-
-    hideLessonInfo() {
-        this.showLessonModal = false;
-        this.selectedLesson = null;
+        
+        closeOrderConfirmation() {
+            this.showOrderConfirmation = false;
+            this.showCartPage = false;
+        },
+        
+        openLessonModal(lesson) {
+            this.selectedLesson = lesson;
+            this.showLessonModal = true;
+        },
+        
+        closeLessonModal() {
+            this.showLessonModal = false;
+            this.selectedLesson = null;
         }
-
     }
- });
-        
-
-        
+});
