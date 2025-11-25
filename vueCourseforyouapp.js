@@ -114,26 +114,24 @@ const app = new Vue({
                 }));
             }
         },
+        addToCart: function(lesson) {
+        const cartIndex = this.cart.findIndex(item => item.id === lesson.id);
+
+    if (cartIndex > -1) {
+        this.cart[cartIndex].quantity++;
+    } else {
         
-        addToCart(lesson) {
-            const cartItem = this.cart.find(item => item.id === lesson.id);
-            
-            if (lesson.spaces > 0) {
-                if (cartItem) {
-                    cartItem.quantity++;
-                } else {
-                    this.cart.push({
-                        id: lesson.id,
-                        lesson: lesson.lesson, // FIX: Use lesson.lesson instead of lesson.topic
-                        location: lesson.location,
-                        price: lesson.price,
-                        quantity: 1
-                    });
-                }
-                // Optimistically update spaces in the frontend
-                lesson.spaces--;
-            }
-        },
+        this.cart.push({
+            id: lesson.id,
+            topic: lesson.topic,
+            location: lesson.location,
+            price: lesson.price,
+            quantity: 1
+        });
+    }
+},
+        
+       
         
         removeFromCart(item) {
             const lesson = this.lessons.find(l => l.id === item.id);
