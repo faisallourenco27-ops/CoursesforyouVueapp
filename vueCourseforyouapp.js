@@ -289,74 +289,79 @@ new Vue({
                     throw error;
                 }
             },
+             // Checkout integrates all three fetch operations
+        async checkout() {
+            if (!this.isCheckoutEnabled) return;
             
-            async checkout() {
-                if (!this.isCheckoutEnabled) return;
-            
-                try {
+            try {
                 console.log('Starting checkout process...');
                 
-                // --- Validation (Omitted for brevity, assuming it's correct) ---
+                // Take snapshot of cart BEFORE any async operations
+                const cartSnapshot = [...this.cart];
+                const totalSnapshot = this.cartTotal;
+                const nameSnapshot = this.checkoutName;
+                const phoneSnapshot = this.checkoutPhone;
                 
                 // Prepare order data for backend
                 const orderData = {
-                    name: this.checkoutName,
-                    phoneNumber: this.checkoutPhone,
-                    lessonIDs: this.cart.map(item => item.id),
-                    spaces: this.cart.reduce((total, item) => total + item.quantity, 0),
-                    totalPrice: this.cartTotal
+                    name: nameSnapshot,
+                    phoneNumber: phoneSnapshot,
+                    lessonIDs: cartSnapshot.map(item => item.id),
+                    spaces: cartSnapshot.reduce((total, item) => total + item.quantity, 0)
                 };
                 
                 // B. POST - Save the order to database
+                console.log(' Saving order...');
                 const savedOrder = await this.saveOrder(orderData);
                 
                 // C. PUT - Update spaces for each lesson in the cart
-                const updatePromises = this.cart.map(item => {
+                console.log(' Updating lesson spaces...');
+                const updatePromises = cartSnapshot.map(item => {
                     const lesson = this.lessons.find(l => l.id === item.id);
                     if (lesson) {
                         return this.updateLessonSpaces(item.id, lesson.spaces);
                     }
                 });
-                await Promise.all(updatePromises.filter(promise => promise !== undefined));
                 
-                // --- State Update for Confirmation ---
+                await Promise.all(updatePromises.filter(p => p !== undefined));
+                console.log(' All lesson spaces updated');
                 
-                // 1. Store confirmation details (must be done BEFORE clearing cart)
-                const orderNumber = savedOrder._id || savedOrder.order?._id || 'ORD' + Date.now();
-                const cartItemsSnapshot = [...this.cart]; // Take a snapshot of the cart before clearing
+                // Generate order number for display
+                const orderNumber = savedOrder.order?._id || savedOrder._id || 'ORD' + Date.now();
                 
+                // Store confirmation details using snapshots
                 this.confirmedOrderDetails = {
                     orderNumber: orderNumber,
-                    name: this.checkoutName,
-                    phone: this.checkoutPhone,
-                    items: cartItemsSnapshot, // Use the snapshot
-                    total: this.cartTotal
+                    name: nameSnapshot,
+                    phone: phoneSnapshot,
+                    items: cartSnapshot,
+                    total: totalSnapshot
                 };
                 
-                // 2. Clear form data and cart (can be done now)
+                console.log(' Order confirmation details:', this.confirmedOrderDetails);
+                
+                // Show confirmation message FIRST
+                this.showOrderConfirmation = true;
+                
+                // Clear form and cart
                 this.cart = [];
                 this.checkoutName = '';
                 this.checkoutPhone = '';
                 
-                // 3. Show confirmation message and hide cart page
-                this.showOrderConfirmation = true;
-                this.showCartPage = false; // FIX: Hide cart page immediately
-                
-                // 4. Refresh lessons from backend to get updated spaces
-                this.fetchLessons();
-                
-                // 5. Set a timeout to hide the confirmation message after 9 seconds
+                // Hide confirmation and return to lessons after delay
                 setTimeout(() => {
                     this.showOrderConfirmation = false;
+                    this.showCartPage = false;
+                    
+                    // Refresh lessons from backend to get updated spaces
+                    this.fetchLessons();
                 }, 9000);
                 
             } catch (error) {
-                console.error('Checkout failed:', error);
                 alert('There was an error processing your order. Please try again.\n\nError: ' + error.message);
+                console.error(' Checkout error:', error);
             }
         },
-        
-        // FIX: Removed the redundant closeOrderConfirmation method as its logic is now in checkout()
         
         showLessonInfo(lesson) {
             this.selectedLesson = lesson;
