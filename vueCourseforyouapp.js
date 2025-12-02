@@ -5,6 +5,11 @@ new Vue({
         sortOrder: 'asc',
         cart: [],
         showCartPage: false,
+        showAdminPage: false,
+        isAdmin: false,
+        adminUsername: '',
+        adminPassword: '',
+        adminError: '',
         checkoutName: '',
         checkoutPhone: '',
         orderSubmitted: false,
@@ -133,9 +138,10 @@ new Vue({
         },
         
         viewCart() {
-            this.showCartPage = true;
-            this.orderSubmitted = false;
-        },
+        this.showAdminPage = false;   // make sure admin is hidden
+        this.showCartPage = true;
+        this.orderSubmitted = false;
+       },
         
         backToLessons() {
             this.showCartPage = false;
@@ -271,6 +277,54 @@ new Vue({
                 console.error(' Checkout error:', error);
             }
         },
+                // 🔹 ADMIN: open/close panel
+        openAdmin() {
+            this.showCartPage = false;
+            this.showAdminPage = true;
+        },
+
+        closeAdmin() {
+            this.showAdminPage = false;
+            this.isAdmin = false;
+            this.adminUsername = '';
+            this.adminPassword = '';
+            this.adminError = '';
+        },
+
+        // 🔹 ADMIN: simple front-end login
+        submitAdminLogin() {
+            const validUser = 'admin';
+            const validPass = 'admin123';
+
+            if (this.adminUsername.trim() === validUser && this.adminPassword === validPass) {
+                this.isAdmin = true;
+                this.adminError = '';
+                this.adminPassword = '';
+            } else {
+                this.isAdmin = false;
+                this.adminError = 'Invalid username or password';
+            }
+        },
+
+        // ADMIN: save spaces for a lesson
+        saveAdminSpaces(lesson) {
+            const newSpaces = Number(lesson.spaces);
+
+            if (isNaN(newSpaces) || newSpaces < 0) {
+                alert('Spaces must be a non-negative number.');
+                return;
+            }
+
+            this.updateLessonSpaces(lesson.id, newSpaces)
+                .then(() => {
+                    alert(`Updated spaces for ${lesson.lesson} to ${newSpaces}`);
+                })
+                .catch(error => {
+                    console.error('Error updating lesson spaces from admin page:', error);
+                    alert('Failed to update lesson spaces. Please try again.');
+                });
+        },
+
        
         showLessonInfo(lesson) {
             this.selectedLesson = lesson;
