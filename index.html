@@ -15,26 +15,32 @@
             <header>
                 <h1><i class="fas fa-graduation-cap"></i> Courses for you</h1>
             </header>
+                 
+            <div class="controls">
+                <div class="sort-controls">
+                    <label><strong>Sort by:</strong></label>
+                <select v-model="sortBy">
+                    <option value="lesson">Lesson</option>
+                    <option value="location">Location</option>
+                    <option value="price">Price</option>
+                    <option value="spaces">Available Spaces</option>
+                </select>
+        <label><strong>Order:</strong></label>
+        <select v-model="sortOrder">
+            <option value="asc">Ascending</option>
+            <option value="desc">Descending</option>
+        </select>
+    </div>
 
-            <!-- Lessons Page -->
-            <div v-if="!showCartPage && !showAdminPage">
-                <div class="controls">
-                    <div class="sort-controls">
-                        <label><strong>Sort by:</strong></label>
-                        <select v-model="sortBy">
-                            <option value="lesson">Lesson</option>
-                            <option value="location">Location</option>
-                            <option value="price">Price</option>
-                            <option value="spaces">Available Spaces</option>
-                        </select>
-
-                        <label><strong>Order:</strong></label>
-                        <select v-model="sortOrder">
-                            <option value="asc">Ascending</option>
-                            <option value="desc">Descending</option>
-                        </select>
-                    </div>
-                </div>
+            <div class="sort-controls">
+                <label><strong>Search:</strong></label>
+            <input
+                type="text"
+                v-model="searchQuery"
+                placeholder="Search by lesson or location"
+            >
+        </div>
+    </div>
 
                 <div class="cart-summary">
                     <strong>Cart: {{ cartCount }} items</strong>
@@ -109,8 +115,17 @@
                             <h3>{{ item.lesson }}</h3>
                             <p>Location: {{ item.location }}</p>
                             <p>Price: £{{ item.price }} each</p>
-                            <p>Quantity: {{ item.quantity }}</p>
-                            <p class="item-total">Total: £{{ item.price * item.quantity }}</p>
+
+                          <div class="quantity-controls">
+                          <span><strong>Quantity:</strong></span>
+                          <button class="qty-btn" @click="decreaseQuantity(item)">-</button>
+                          <span>{{ item.quantity }}</span>
+                          <button class="qty-btn" @click="increaseQuantity(item)">+</button>
+                            </div>
+
+                         <p class="item-total">Total: £{{ item.price * item.quantity }}</p>
+
+                            
                         </div>
                         <button class="remove-btn" @click="removeFromCart(item)">
                             <i class="fas fa-trash"></i> Remove

@@ -512,3 +512,27 @@ button:disabled {
     margin-top: 10px;
     padding: 10px 16px;
 }
+/* Quantity controls in cart */
+.quantity-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 6px 0;
+}
+
+.qty-btn {
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: none;
+    background: #33004df9;
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    transition: background 0.2s;
+}
+
+.qty-btn:hover {
+    background: #000904;
+}
+

@@ -1,7 +1,7 @@
 new Vue({
     el: '#app',
     data: {
-        sortBy: 'lesson',
+        sortBy: 'lesson', // default sort by lesson name
         sortOrder: 'asc',
         cart: [],
         showCartPage: false,
@@ -17,7 +17,8 @@ new Vue({
         confirmedOrderDetails: null,
         showLessonModal: false,
         selectedLesson: null,
-        apiBaseUrl: 'https://expressjs-flj.onrender.com/api', // Fixed: Added /api
+        searchQuery: '',
+        apiBaseUrl: 'https://expressjs-flj.onrender.com/api', // Update with backend URL
         lessons: []
     },
 
@@ -26,21 +27,39 @@ new Vue({
     },
 
     computed: {
-        sortedLessons() {
-            const sorted = [...this.lessons].sort((a, b) => {
-                let aValue = a[this.sortBy];
-                let bValue = b[this.sortBy];
-                if (typeof aValue === 'string') {
-                    aValue = aValue.toLowerCase();
-                    bValue = bValue.toLowerCase();
-                }
-                if (aValue < bValue) return this.sortOrder === 'asc' ? -1 : 1;
-                if (aValue > bValue) return this.sortOrder === 'asc' ? 1 : -1;
-                return 0;
-            });
-            return sorted;
-        },
+            sortedLessons() {
+        // First filter by search query
+        let filtered = this.lessons;
 
+        if (this.searchQuery.trim() !== '') {
+            const q = this.searchQuery.trim().toLowerCase();
+            filtered = this.lessons.filter(lesson => {
+                return (
+                    lesson.lesson.toLowerCase().includes(q) ||
+                    lesson.location.toLowerCase().includes(q)
+             );
+            });
+     }
+
+        // Then sort the filtered list
+        const sorted = [...filtered].sort((a, b) => {
+            let aValue = a[this.sortBy];
+            let bValue = b[this.sortBy];
+
+            if (typeof aValue === 'string') {
+             aValue = aValue.toLowerCase();
+                bValue = bValue.toLowerCase();
+         }
+
+            if (aValue < bValue) return this.sortOrder === 'asc' ? -1 : 1;
+            if (aValue > bValue) return this.sortOrder === 'asc' ? 1 : -1;
+            return 0;
+        });
+
+        return sorted;
+    },
+    
+    
         cartCount() {
             return this.cart.reduce((total, item) => total + item.quantity, 0);
         },
@@ -136,6 +155,29 @@ new Vue({
             }
             this.cart = this.cart.filter(item => item.id !== cartItem.id);
         },
+
+        // Change quantity in cart
+        increaseQuantity(cartItem) {
+            const lesson = this.lessons.find(l => l.id === cartItem.id);
+            if (lesson && lesson.spaces > 0) {
+                lesson.spaces--;        // taking one more seat
+                cartItem.quantity++;   // add one to cart
+            }
+        },
+
+        decreaseQuantity(cartItem) {
+            if (cartItem.quantity > 1) {
+                const lesson = this.lessons.find(l => l.id === cartItem.id);
+                if (lesson) {
+                    lesson.spaces++;   // free up a seat
+                }
+                cartItem.quantity--;   // remove one from cart
+            } else {
+                // if quantity would go to 0, just remove the item
+                this.removeFromCart(cartItem);
+            }
+        },
+
         
         viewCart() {
         this.showAdminPage = false;   // make sure admin is hidden
@@ -149,7 +191,7 @@ new Vue({
             this.checkoutPhone = '';
         },
        
-        // B. POST - Save new order to backend (3%)
+        // B. POST - Save new order to backend 
         async saveOrder(orderData) {
             try {
                 console.log('📝 Sending order data:', orderData);
@@ -178,7 +220,7 @@ new Vue({
             }
         },
 
-        // C. PUT - Update lesson spaces in backend (3%)
+        // C. PUT - Update lesson spaces in backend 
         async updateLessonSpaces(lessonId, newSpaces) {
             try {
                 console.log(` Updating lesson ${lessonId} to ${newSpaces} spaces`);
@@ -226,7 +268,7 @@ new Vue({
                 };
                 
                 // B. POST - Save the order to database
-                console.log('📝 Saving order...');
+                console.log(' Saving order...');
                 const savedOrder = await this.saveOrder(orderData);
                 
                 // C. PUT - Update spaces for each lesson in the cart
