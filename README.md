@@ -9,7 +9,7 @@ A Vue.js shopping cart application for course bookings.
 - Remove items from cart
 - Checkout with form validation
 - View detailed lesson information
-- Admin page to update page 
+- Admin page to update information
 
 ## Technologies
 - Vue.js 2.7.8
