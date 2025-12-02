@@ -101,7 +101,7 @@ new Vue({
             price: lesson.price,
             spaces: lesson.space,              // backend: space → frontend: spaces
             icon: this.getLessonImage(lesson.topic),
-            synopsis: `Learn ${lesson.topic} at our ${lesson.location} location. An engaging course designed to help you master the subject.`
+            synopsis: this.getLessonSynopsis(lesson.topic, lesson.location)
         }));
 
         console.log(' Lessons transformed successfully:', this.lessons);
@@ -129,6 +129,27 @@ new Vue({
             };
             return imageMap[topic] || 'https://via.placeholder.com/220';
         },
+
+        getLessonSynopsis(topic, location) {
+            const place = location ? ` at our ${location} centre` : '';
+
+             const map = {
+                'Further Maths': `Build a strong foundation in advanced topics like algebra, calculus and problem-solving${place}, perfect for students aiming for top grades.`,
+                'Art & Design': `Explore drawing, painting and digital design${place}, while building a creative portfolio and learning how to express your ideas visually.`,
+                'Boxing': `Learn boxing fundamentals${place}, including footwork, punching technique and fitness drills in a safe, structured environment.`,
+                'Karate': `Develop discipline, confidence and self-defence skills${place} through traditional karate techniques, partner work and fun drills.`,
+                'Football': `Improve your passing, shooting and teamwork${place} with game-based sessions that build both skills and match awareness.`,
+                'Drama': `Gain confidence on stage${place} through acting exercises, script work and group performances in a supportive atmosphere.`,
+                'Music': `Learn to read music, develop rhythm and perform with others${place}, whether you’re just starting out or building existing skills.`,
+                'Basketball': `Work on dribbling, shooting and defence${place} with structured drills and small-sided games designed to boost your confidence on court.`,
+                'Coding': `Get hands-on with real programming concepts${place}, building small projects that introduce you to web, game or app development.`,
+                'Cooking': `Learn essential kitchen skills${place}, from knife safety to tasty recipes, and gain confidence preparing simple dishes yourself.`
+            };
+
+        // Fallback if a topic isn't in the map:
+        return map[topic] || `Learn ${topic}${place} in a supportive, engaging course designed to help you grow.`;
+   },
+
 
         addToCart(lesson) {
             if (lesson.spaces > 0) {
