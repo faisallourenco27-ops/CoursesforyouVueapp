@@ -17,7 +17,7 @@
             </header>
 
             <!-- Lessons Page -->
-           <div v-if="!showCartPage && !showAdminPage"></div>
+            <div v-if="!showCartPage && !showAdminPage">
                 <div class="controls">
                     <div class="sort-controls">
                         <label><strong>Sort by:</strong></label>
@@ -36,16 +36,15 @@
                     </div>
                 </div>
 
-            <div class="cart-summary">
-                <strong>Cart: {{ cartCount }} items</strong>
-                   <button class="view-cart-btn" @click="viewCart()">
-                      <i class="fas fa-shopping-cart"></i> View Cart
-                   </button>
-                <button class="view-cart-btn" @click="openAdmin()">
+                <div class="cart-summary">
+                    <strong>Cart: {{ cartCount }} items</strong>
+                    <button class="view-cart-btn" @click="viewCart()">
+                        <i class="fas fa-shopping-cart"></i> View Cart
+                    </button>
+                    <button class="view-cart-btn" @click="openAdmin()">
                         <i class="fas fa-user-shield"></i> Admin
                     </button>
-            </div>
-
+                </div>
 
                 <div class="lessons-grid">
                     <div v-for="lesson in sortedLessons" :key="lesson.id" class="lesson-card">
@@ -90,7 +89,7 @@
             </div>
 
             <!-- Shopping Cart Page -->
-             <div v-else-if="showCartPage" class="cart-page">
+            <div v-else-if="showCartPage" class="cart-page">
                 <div class="cart-header">
                     <button class="back-btn" @click="backToLessons()">
                         <i class="fas fa-arrow-left"></i> Back to Lessons
@@ -190,48 +189,8 @@
                     </div>
                 </div>
             </div>
-                        <!-- Admin Page -->
-            <div v-else class="cart-page admin-page">
-                <div class="cart-header">
-                    <button class="back-btn" @click="closeAdmin()">
-                        <i class="fas fa-arrow-left"></i> Back
-                    </button>
-                    <h2>Admin: Manage Lesson Spaces</h2>
-                </div>
 
-                <!-- Admin Login -->
-                <div v-if="!isAdmin" class="checkout-form">
-                    <h3>Admin Login</h3>
-
-                    <div class="form-group">
-                        <label for="admin-username"><strong>Username:</strong></label>
-                        <input
-                            type="text"
-                            id="admin-username"
-                            v-model="adminUsername"
-                            placeholder="Enter admin username"
-                        >
-                    </div>
-
-                    <div class="form-group">
-                        <label for="admin-password"><strong>Password:</strong></label>
-                        <input
-                            type="password"
-                            id="admin-password"
-                            v-model="adminPassword"
-                            placeholder="Enter admin password"
-                        >
-                    </div>
-
-                    <span v-if="adminError" class="error-message">
-                        {{ adminError }}
-                    </span>
-
-                    <button class="checkout-btn" @click="submitAdminLogin()">
-                        <i class="fas fa-sign-in-alt"></i> Login
-                    </button>
-                </div>
-                            <!-- Admin Page -->
+            <!-- Admin Page -->
             <div v-else class="cart-page admin-page">
                 <div class="cart-header">
                     <button class="back-btn" @click="closeAdmin()">
@@ -304,7 +263,6 @@
                     </div>
                 </div>
             </div>
-
 
             <!-- Lesson Info Modal -->
             <div v-if="showLessonModal" class="modal-overlay" @click="hideLessonInfo">
