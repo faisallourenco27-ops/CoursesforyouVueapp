@@ -27,19 +27,24 @@ new Vue({
     },
 
     computed: {
-            sortedLessons() {
+       sortedLessons() {
         // First filter by search query
         let filtered = this.lessons;
-
         if (this.searchQuery.trim() !== '') {
-            const q = this.searchQuery.trim().toLowerCase();
-            filtered = this.lessons.filter(lesson => {
-                return (
-                    lesson.lesson.toLowerCase().includes(q) ||
-                    lesson.location.toLowerCase().includes(q)
-             );
-            });
-     }
+    const q = this.searchQuery.trim().toLowerCase();
+
+    filtered = this.lessons.filter(lesson => {
+        return (
+            lesson.lesson.toLowerCase().includes(q) ||
+            lesson.location.toLowerCase().includes(q) ||
+            lesson.price.toString().includes(q) ||     
+            lesson.spaces.toString().includes(q)       
+        );
+    });
+}
+
+
+        
 
         // Then sort the filtered list
         const sorted = [...filtered].sort((a, b) => {
